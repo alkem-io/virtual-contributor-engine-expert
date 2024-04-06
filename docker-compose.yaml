@@ -1,0 +1,43 @@
+version: '3'
+
+networks:
+  alkemio:
+
+services:
+  virtual-contributor:
+      container_name: virtual-contributor
+      extra_hosts:
+        - 'host.docker.internal:host-gateway'
+      volumes:
+          - '/dev/shm:/dev/shm'
+          - '~/alkemio/data:/home/alkemio/data'
+      env_file:
+        - .env
+      build:
+        dockerfile: ./Dockerfile
+      # image: alkemio/guidance-engine:v0.5.1
+      platform: linux/x86_64
+      # depends_on:
+      #   rabbitmq:
+      #     condition: "service_healthy"
+      networks:
+        - alkemio
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+
+    platform: linux/x86_64
+    container_name: 'rabbitmq'
+    healthcheck:
+      test: rabbitmq-diagnostics check_port_connectivity
+      interval: 30s
+      timeout: 30s
+      retries: 10
+    ports:
+      - 5672:5672
+      - 8080:15672
+
+    networks:
+      - alkemio

@@ -1,0 +1,16 @@
+
+      Name: LearnDiTwin-Learning Community voor Publieke Digital Twins (HU)
+      Tagline: Sneller en beter Digital Twins realiseren
+      Tags: 
+      Description: .
+
+      Impact: 
+      Vision: .
+
+      Who: 
+      card: https://alkem.io/api/private/rest/storage/document/45636bb4-48d0-409b-985d-1da8c687e873
+banner: https://alkem.io/api/private/rest/storage/document/44cd2972-dc15-43c1-a0a7-2db68b6b7ba1
+avatar: https://alkem.io/api/private/rest/storage/document/45636bb4-48d0-409b-985d-1da8c687e873
+      Location:   
+      URL: https://alkem.io/digileefomgeving/challenges/learnditwin-learning-2041
+    

@@ -1,0 +1,18 @@
+
+      Name: [oud] Programma Totaal Driedimensionaal
+      Tagline: Deze Challenge is nu een Hub. Klik op de onderstaande link om naar de T3D Hub te gaan.
+
+https://alkem.io/t3d/dashboard
+
+
+      Tags: 
+      Description: 
+      Impact: 
+      Vision: 
+      Who: 
+      avatar: https://alkem.io/api/private/rest/storage/document/bbf8e0c8-4957-4dee-942e-1fabc1f3dbb0
+card: https://alkem.io/api/private/rest/storage/document/bbf8e0c8-4957-4dee-942e-1fabc1f3dbb0
+banner: https://alkem.io/api/private/rest/storage/document/ebab15df-54cc-450b-8b03-33f2a3abc266
+      Location:   
+      URL: https://alkem.io/digileefomgeving/challenges/t3d
+    
