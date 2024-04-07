@@ -9,7 +9,7 @@ config = {
     "rabbitmq_host": os.getenv('RABBITMQ_HOST'),
     "rabbitmq_user": os.getenv('RABBITMQ_USER'),
     "rabbitmq_password": os.getenv('RABBITMQ_PASSWORD'),
-    "rabbitmqrequestqueue": "alkemio-virtual-persona",
+    "rabbitmqrequestqueue": os.getenv('RABBITMQ_QUEUE'),
     "source_website": os.getenv('AI_SOURCE_WEBSITE'),
     "local_path": os.getenv('AI_LOCAL_PATH')
 }
