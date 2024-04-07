@@ -75,7 +75,7 @@ rabbitmq = RabbitMQ(
     queue=config['rabbitmqrequestqueue']
 )
 
-async def query(user_id, query, context, language_code):
+async def query(user_id, query, language_code):
     async with ingestion_lock:
         logger.info(f"\nQuery from user {user_id}: {query}\n")
 
@@ -92,7 +92,7 @@ async def query(user_id, query, context, language_code):
         # chat_history = user_data[user_id]['chat_history']
 
         with get_openai_callback() as cb:
-            llm_result = await ai_adapter.query_chain({"question": query, "context": context}, {"language": user_data[user_id]['language']}, user_data[user_id]['chat_history'])
+            llm_result = await ai_adapter.query_chain({"question": query }, {"language": user_data[user_id]['language']}, user_data[user_id]['chat_history'])
             answer = llm_result['answer']
 
         # clean up the document sources to avoid sending too much information over.
@@ -160,7 +160,7 @@ async def process_message(message: aio_pika.IncomingMessage):
         if operation == 'query':
             if ('question' in body['data']):
                 logger.info(f"query time for user id: {user_id}, let's call the query() function!\n\n")
-                response = await query(user_id, body['data']['question'], json.dumps(body['data']['context']), 'English')
+                response = await query(user_id, body['data']['question'], 'English')
             else:
                 response = "Query parameter(s) not provided"
         elif operation == 'reset':
