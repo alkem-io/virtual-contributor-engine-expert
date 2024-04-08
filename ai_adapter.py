@@ -1,4 +1,3 @@
-import json
 from langchain.vectorstores import FAISS
 from langchain_core.prompts import HumanMessagePromptTemplate, SystemMessagePromptTemplate
 from langchain_openai import AzureOpenAIEmbeddings
@@ -14,39 +13,14 @@ from langchain_core.messages.ai import AIMessage
 from langchain_core.runnables import RunnableBranch
 from langchain.callbacks import get_openai_callback
 
-from operator import itemgetter
-import logging
-import sys
-import io
-from config import config, vectordb_path, local_path, LOG_LEVEL, max_token_limit
+from config import config, vectordb_path, LOG_LEVEL, local_path, max_token_limit
 from ingest import ingest
 
 
 import os
-# configure logging
-logger = logging.getLogger(__name__)
-assert LOG_LEVEL in ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
-logger.setLevel(getattr(logging, LOG_LEVEL))  # Set logger level
+from logger import setup_logger
 
-
-# Create handlers
-c_handler = logging.StreamHandler(io.TextIOWrapper(sys.stdout.buffer, line_buffering=True))
-f_handler = logging.FileHandler(os.path.join(os.path.expanduser(local_path), 'app.log'))
-
-c_handler.setLevel(level=getattr(logging, LOG_LEVEL))
-f_handler.setLevel(logging.WARNING)
-
-# Create formatters and add them to handlers
-c_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', '%m-%d %H:%M:%S')
-f_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', '%m-%d %H:%M:%S')
-c_handler.setFormatter(c_format)
-f_handler.setFormatter(f_format)
-
-# Add handlers to the logger
-logger.addHandler(c_handler)
-logger.addHandler(f_handler)
-
-logger.info(f"log level {os.path.basename(__file__)}: {LOG_LEVEL}")
+logger = setup_logger(__name__)
 
 # verbose output for LLMs
 if LOG_LEVEL == "DEBUG":

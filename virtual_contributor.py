@@ -1,43 +1,18 @@
+from ingest import ingest
 from langchain.callbacks import get_openai_callback
 from langchain.memory import ConversationBufferWindowMemory
 # import pika
 import json
 import ai_adapter
-import logging
-import sys
-import io
 import asyncio
-import os
 import aio_pika
 import aiormq
-import json
 from aio_pika import connect, RobustConnection
-from config import config, local_path, LOG_LEVEL
+from config import config
 
-# configure logging
-logger = logging.getLogger(__name__)
-assert LOG_LEVEL in ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
-logger.setLevel(getattr(logging, LOG_LEVEL))  # Set logger level
+from logger import setup_logger
 
-
-# Create handlers
-c_handler = logging.StreamHandler(io.TextIOWrapper(sys.stdout.buffer, line_buffering=True))
-f_handler = logging.FileHandler(os.path.join(os.path.expanduser(local_path), 'app.log'))
-
-c_handler.setLevel(level=getattr(logging, LOG_LEVEL))
-f_handler.setLevel(logging.WARNING)
-
-# Create formatters and add them to handlers
-c_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', '%m-%d %H:%M:%S')
-f_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', '%m-%d %H:%M:%S')
-c_handler.setFormatter(c_format)
-f_handler.setFormatter(f_format)
-
-# Add handlers to the logger
-logger.addHandler(c_handler)
-logger.addHandler(f_handler)
-
-logger.info(f"log level {os.path.basename(__file__)}: {LOG_LEVEL}")
+logger = setup_logger(__name__)
 
 # define variables
 user_data = {}
@@ -72,7 +47,7 @@ rabbitmq = RabbitMQ(
     host=config['rabbitmq_host'],
     login=config['rabbitmq_user'],
     password=config['rabbitmq_password'],
-    queue=config['rabbitmqrequestqueue']
+    queue=config['rabbitmq_queue']
 )
 
 async def query(user_id, query, language_code):
