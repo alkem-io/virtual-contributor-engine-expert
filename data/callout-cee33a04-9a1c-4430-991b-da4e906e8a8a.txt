@@ -1,0 +1,31 @@
+<source>https://alkem.io/digileefomgeving/challenges/3dnetherlands-9755/collaboration/recommendations</source>
+<type>callout</type>
+Name: Recommended by the Host
+Description: Please find below quick start links.
+References:
+
+URL: https://alkem.io/digileefomgeving/challenges/3dnetherlands-9755/collaboration/recommendations
+Contributions:
+
+References:
+
+URL: 
+
+Description: De 3D omgeving van Amsterdam  op basis van de open code en open data
+References:
+
+URL: 
+
+Description: De 3D omgeving van Utrecht op basis van de open code en open data
+References:
+
+URL: 
+
+Description: De website waar alles over Netherlands 3D wordt gecommuniceerd en waar ook alle relevante uitleg te vinden is.
+References:
+
+URL: 
+
+References:
+
+URL: 

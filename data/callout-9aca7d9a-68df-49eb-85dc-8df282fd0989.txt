@@ -1,0 +1,9 @@
+<source>https://alkem.io/digileefomgeving/challenges/learnditwin-learning-2041/collaboration/waaromlearnditwinv-8586</source>
+<type>callout</type>
+Name: Waarom LearnDitWin voor publieke digital twins? 
+Tags: LearnDitWin
+Description: Inleiding Op initiatief van de Hogeschool Utrecht, Provincie Utrecht en Gemeente Amersfoort wordt een Community voor publieke Digital Twins gestart. Het doel van deze meerjarige Learning Community is kennisontwikkeling voor professionals en studenten zodat Digital Twins voor de ruimtelijke ordening en gezond stedelijk leven beter en sneller ingezet kunnen worden. Kernwoorden voor een Learning Community zijn: samen leren, samen werken en samen innoveren door overheid, ondernemers en onderwijs.
+
+References:
+
+URL: https://alkem.io/digileefomgeving/challenges/learnditwin-learning-2041/collaboration/waaromlearnditwinv-8586

@@ -1,0 +1,29 @@
+<source>https://alkem.io/digileefomgeving</source>
+<type>space</type>
+Name: Digitale Leefomgeving
+Tagline: De Digital Twin Community NL! --
+3D besluitvorming voor de leefomgeving in Nederland
+Tags: digital twin, 3d, gemeenten, T3D, digitalisering, innovatie, Nederland
+Description: Met méér data, krijgen we niet automitisch een béter beeld van de maatschappelijke opgaven en oplossingen waar we gezamelijk voor moeten zorgen. Maar dat er meer data komt, staat vast. Dat we meer gaan sturen op basis van data, is ook duidelijk.
+
+3D informatie is niet nieuw - al jaren wordt dit gebruikt in verschillende sectoren. Het is dan ook niet de technologie die we moeten begrijpen, het is leren omgaan én het zorgen voor duurzame implementatie van de technologie waar we op focussen. 
+
+Een goed voorbeeld van het gebruik kan 3D informtie is Digital Twinning. De belofte is groot, die moet nog wel waar gemaakt worden.
+
+De community is open: iedereen is welkom. Het doel is samen: want maatschappelijke opgaven zijn van ons allen. En we zijn eerlijk: over plus-, en minpunten, over kansen en bedreigingen
+Impact: De impact van technologie is enorm. Belangrijk onderdeel van de technologische transformatie is de transformatie van de organisatie. Als community willen we bereiken dan die ontwikkelingen hand in hand gaan.
+
+Gezamelijk kunnen we een doorbraak creëren op het gebied van **3D informatie** en de mate waarin de gemeenten en breder de overheid in staat zijn driedimensionale informatie die al beschikbaar is, op te nemen in haar registraties en deze vervolgens ook te gebruiken voor de taken en uitdagingen waar ze voor staat.
+Vision: Technologie heeft over een aantal jaar een zeer prominente plek in de manier waarop beleid ontwikkeld wordt, beslissingen worden genomen en effectiviteit wordt gemeten. Het beeld van een groep stakeholders met Oculus brillen die naar het resultaat kijken van voorgenomen beleid klinkt ver weg, maar is het niet. 
+
+De community Digitale Leefomgeving is de plek waar overheid, markt, kennis, onderwijs én gebruikers samen komen om aan de hand van de praktijk, de toekomst te vormen. Want door te doen, leren waar beperkingen, voordelen, drempels en kansen liggen!
+Visuals: 	card: https://alkem.io/api/private/rest/storage/document/adae8d21-a69c-43d2-a4fb-08dc4ee7bd3b
+	banner: https://alkem.io/api/private/rest/storage/document/58ea2339-28cc-40a5-92e8-4e65b64399fa
+	avatar: 
+Location:   NL
+References:
+	Reference name: New reference
+	Reference description: 
+	Uri: 
+
+URL: https://alkem.io/digileefomgeving
