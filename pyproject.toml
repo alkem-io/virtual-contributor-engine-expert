@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "guidance-engine"
-version = "0.6.1"
-description = "Alkemio Generative AI Guidance Engine"
+name = "virtual-persona-engine"
+version = "0.2.0"
+description = "Alkemio Generative AI Virtul Persona"
 authors = ["Alkemio BV <info@alkem.io>"]
 license = "EUPL-1.2"
 readme = "README.md"
