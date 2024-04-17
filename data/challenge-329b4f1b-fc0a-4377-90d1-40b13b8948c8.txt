@@ -1,17 +1,17 @@
+<source>https://alkem.io/digileefomgeving/challenges/communitymanagement-3423</source>
+<type>challenge</type>
+Name: Community Ontwikkeling
+Tagline: Hoe kunnen we samen werken aan het bouwen van een actieve community? (Work in Progress)
+Tags: Community management, Planning, Organisatie
+Description: <br>
 
-      Name: Community Ontwikkeling
-      Tagline: Hoe kunnen we samen werken aan het bouwen van een actieve community? (Work in Progress)
-      Tags: Community management, Planning, Organisatie
-      Description: <br>
+Vision: Het doel is om door middel van deze challenge een gemeenschap creëren die volledig zelfvoorzienend en zelfsturend is. Laten we samen het gesprek voeren over hoe we kunnen samenwerken in en met een community platform. Uiteindelijk willen we een gemeenschap waarin leden actief bijdragen aan het beheer en de groei van de community en waarin ideeën en kennis vrijelijk worden gedeeld en verspreid. Onze toekomstvisie omvat een levendige en actieve gemeenschap die een platform biedt voor open innovatie en samenwerking.
 
-      Impact: 
-      Vision: Het doel is om door middel van deze challenge een gemeenschap creëren die volledig zelfvoorzienend en zelfsturend is. Laten we samen het gesprek voeren over hoe we kunnen samenwerken in en met een community platform. Uiteindelijk willen we een gemeenschap waarin leden actief bijdragen aan het beheer en de groei van de community en waarin ideeën en kennis vrijelijk worden gedeeld en verspreid. Onze toekomstvisie omvat een levendige en actieve gemeenschap die een platform biedt voor open innovatie en samenwerking.
+Who: Iedereen is welkom! Of je nu een beleidsmaker, ontwikkelaar, onderzoeker of eindgebruiker bent, deze community is er voor iedereen die wilt bijdragen aan onze community.
 
-      Who: Iedereen is welkom! Of je nu een beleidsmaker, ontwikkelaar, onderzoeker of eindgebruiker bent, deze community is er voor iedereen die wilt bijdragen aan onze community.
+Visuals: 	avatar: https://alkem.io/api/private/rest/storage/document/bc5f0fb6-b418-4e59-9c51-c932b1e0ba34
+	banner: 
+	card: https://alkem.io/api/private/rest/storage/document/545dc0f9-2e13-49e1-af6f-0fb3b189afb1
+References:
 
-      avatar: https://alkem.io/api/private/rest/storage/document/bc5f0fb6-b418-4e59-9c51-c932b1e0ba34
-banner: 
-card: https://alkem.io/api/private/rest/storage/document/545dc0f9-2e13-49e1-af6f-0fb3b189afb1
-      Location:   
-      URL: https://alkem.io/digileefomgeving/challenges/communitymanagement-3423
-    
+URL: https://alkem.io/digileefomgeving/challenges/communitymanagement-3423

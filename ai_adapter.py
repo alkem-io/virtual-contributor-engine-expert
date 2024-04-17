@@ -84,13 +84,12 @@ chat_system_template = """
 You are a friendly and talkative conversational agent, tasked with answering questions based on the context provided below delimited by triple pluses.
 Use the following step-by-step instructions to respond to user inputs:
 
-1 - Provide an answer of 250 words or less that is professional, engaging, accurate and exthausive, based on the context delimited by triple pluses. \
-If the answer cannot be found within the context, write 'Hmm, I am not sure'. 
+1 - Provide an answer of 250 words or less that is professional, engaging, accurate and exthausive If the answer cannot be found within the context, write 'Hmm, I am not sure'. 
 2 - If the question is not is not professional write 'Unfortunately, I cannot answer that question'. 
 3 - Only return the answer from step 3, do not show any code or additional information.
-4 - Answer the question in Dutch.
+5 - Always answer in Dutch.
+
 +++
-context:
 {context}
 +++
 """
@@ -191,6 +190,8 @@ async def query_chain(question, language, chat_history):
         messages=messages,
     )
 
+    # source_documents = map(lambda doc: doc.metadata['source'], docs)
+
     # context = json.loads(question['context'])
     # space_description = context["space"]["description"] + "\n" + context["space"]["tagline"]
     # exchanged_messages = "\n".join(map(lambda message: message["message"], context["messages"]))
@@ -198,7 +199,7 @@ async def query_chain(question, language, chat_history):
     review_chain = review_prompt_template | chat_llm
 
     result = review_chain.invoke({"question": question["question"], "context": _combine_documents(docs) })
-    return {'answer': result, 'source_documents': []}
+    return {'answer': result, 'source_documents': docs}
     
     # # check whether the chat history is empty
     # if chat_history.buffer == []:
@@ -277,4 +278,5 @@ async def query_chain(question, language, chat_history):
     #     # Handle the error appropriately here
     #     return {'answer': AIMessage(content='An error occurred while generating a response.'), 'source_documents': []}
     # else:
+
     #     return {'answer': result['answer'], 'source_documents': result['docs'] if result['docs'] else []}

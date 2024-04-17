@@ -1,16 +1,26 @@
+<source>https://alkem.io/digileefomgeving/challenges/learnditwin-learning-2041</source>
+<type>challenge</type>
+Name: LearnDiTwin-Learning Community voor Publieke Digital Twins (HU)
+Tagline: Sneller en beter Digital Twins realiseren
+Description: .
 
-      Name: LearnDiTwin-Learning Community voor Publieke Digital Twins (HU)
-      Tagline: Sneller en beter Digital Twins realiseren
-      Tags: 
-      Description: .
+Vision: .
 
-      Impact: 
-      Vision: .
+Visuals: 	card: https://alkem.io/api/private/rest/storage/document/45636bb4-48d0-409b-985d-1da8c687e873
+	banner: https://alkem.io/api/private/rest/storage/document/44cd2972-dc15-43c1-a0a7-2db68b6b7ba1
+	avatar: https://alkem.io/api/private/rest/storage/document/45636bb4-48d0-409b-985d-1da8c687e873
+References:
+	Reference name: Gemeente Amersfoort
+	Reference description: De gemeente Amersfoort is early adopter van Digital Twins. Toepassingen zijn o.a. gerealiseerd bij de wijk Schuilenburg en de wijk Liendert. Daarnaast is de gemeente actief betrokken bij de Digital Kennishub Gezond Stedelijk Leven.  Contactpersoon voor het LearnDitWin project bij de gemeente Amersfoort is Huug Meijer. 
+	Uri: https://stadszaken.nl/artikel/4217/amersfoortse-wijk-wordt-digitaal-getransformeerd-met-eu-subsidie
+,	Reference name: Provincie Utrecht
+	Reference description: De provincie Utrecht is samen met de gemeente Amersfoort actief in het Earth Valley initiatief. Zie https://www.romutrechtregion.nl/sector/earth-valley/. De provincie ondersteunt gemeenten in de provincie op een pro-actieve manier met digital twin toepassingen voor klimaat thema's (hitte stress, wateroverlast) en de woningbouwopgave.  Contactpersonen bij de provincie zijn Luc de Horde en Rob Peters.. 
+	Uri: https://www.utrecht.nl/bestuur-en-organisatie/publicaties/utrecht-in-3d/
+,	Reference name: Hogeschool Utrecht Digital Twin Lab 
+	Reference description: Binnen de Hogeschool Utrecht wordt op een aantal plaatsen gewerkt aan het succesvol toepassen van Digital Twins. Dat is bij de HU-ICT (business en ict management) en bij HU-Built Environment. Contactpersonen voor het LearnDitWin project zijn Johan Versdendaal en Ronald Buijsse 
+	Uri: https://www.hu.nl/onderzoek/digital-twins-lab
+,	Reference name: Gemeente Amsterdam 
+	Reference description: Ook de gemeente Amsterdam is koploper op het gebied van publieke Digital Twin toepassingen. Zoals in 3d.Amsterdam.nl. Contactpersoon voor het LearnDitWin project bij de gemeente Amsterdam is Floris Harten. 
+	Uri: https://3d.amsterdam.nl/#over
 
-      Who: 
-      card: https://alkem.io/api/private/rest/storage/document/45636bb4-48d0-409b-985d-1da8c687e873
-banner: https://alkem.io/api/private/rest/storage/document/44cd2972-dc15-43c1-a0a7-2db68b6b7ba1
-avatar: https://alkem.io/api/private/rest/storage/document/45636bb4-48d0-409b-985d-1da8c687e873
-      Location:   
-      URL: https://alkem.io/digileefomgeving/challenges/learnditwin-learning-2041
-    
+URL: https://alkem.io/digileefomgeving/challenges/learnditwin-learning-2041

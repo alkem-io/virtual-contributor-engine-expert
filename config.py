@@ -11,7 +11,7 @@ config = {
     "rabbitmq_password": os.getenv('RABBITMQ_PASSWORD'),
     "rabbitmqrequestqueue": os.getenv('RABBITMQ_QUEUE'),
     "source_website": os.getenv('AI_SOURCE_WEBSITE'),
-    "local_path": os.getenv('AI_LOCAL_PATH')
+    "local_path": os.getenv('AI_LOCAL_PATH') or '' 
 }
 
 local_path = config['local_path']

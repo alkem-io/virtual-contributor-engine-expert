@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 import sys
 import io
 import glob
@@ -7,7 +8,7 @@ import glob
 from langchain_openai import AzureOpenAIEmbeddings
 from config import LOG_LEVEL
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.document_loaders import DirectoryLoader
+from langchain_community.document_loaders import DirectoryLoader, TextLoader
 from langchain.vectorstores import FAISS
 from langchain.callbacks import get_openai_callback
 
@@ -45,11 +46,30 @@ def embed_text(texts, save_loc):
     docsearch = FAISS.from_documents(texts, embeddings)
     docsearch.save_local(save_loc)
 
+def process_docs(doc):
+    source = doc.metadata['source']
+    source_search = re.search('<source>(.*)</source>', doc.page_content)
+
+    if source_search:
+        source = source_search.group(1)
+    doc_type_search = re.search('<type>(.*)</type>', doc.page_content) 
+
+    doc_type = 'space'
+    if doc_type_search:
+        doc_type = doc_type_search.group(1)
+
+    doc.page_content = re.sub(r'<source>(.*)</source>\n', '', doc.page_content)
+    doc.page_content = re.sub(r'<type>(.*)</type>\n', '', doc.page_content)
+    doc.metadata['source'] = source
+    doc.metadata['type'] = doc_type
+    return doc
+
 def load_and_split_texts():
-    loader = DirectoryLoader('./data', glob="**/*.txt")
+    loader = DirectoryLoader('./data', glob="**/*.txt", loader_cls=TextLoader)
+    docs = [process_docs(doc) for doc in loader.load()];
 
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_size/5, length_function=len, is_separator_regex=False)
-    texts = text_splitter.split_documents(loader.load())
+    texts = text_splitter.split_documents(docs)
     return texts
 
 def ingest():

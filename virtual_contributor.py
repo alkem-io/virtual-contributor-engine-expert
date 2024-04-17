@@ -1,5 +1,8 @@
+import re
 from langchain.callbacks import get_openai_callback
 from langchain.memory import ConversationBufferWindowMemory
+
+
 # import pika
 import json
 import ai_adapter
@@ -68,6 +71,7 @@ class RabbitMQ:
         await self.channel.declare_queue(self.queue, auto_delete=False)
 
 
+logger.info(config)
 rabbitmq = RabbitMQ(
     host=config['rabbitmq_host'],
     login=config['rabbitmq_user'],
@@ -77,7 +81,12 @@ rabbitmq = RabbitMQ(
 
 async def query(user_id, query, language_code):
     async with ingestion_lock:
+
+        # trim the VC tag   
+        query = re.sub(r"\[@.*\d\d\)", '', query).strip()
+
         logger.info(f"\nQuery from user {user_id}: {query}\n")
+         
 
         if user_id not in user_data:
             user_data[user_id] = {}
@@ -112,7 +121,6 @@ async def query(user_id, query, language_code):
         logger.debug(f"new chat history {user_data[user_id]['chat_history']}\n")
         response = json.dumps({"question": query, "answer": str(answer.content), "sources": sources, "prompt_tokens": cb.prompt_tokens,
                               "completion_tokens": cb.completion_tokens, "total_tokens": cb.total_tokens, "total_cost": cb.total_cost})
-
         return response
 
 def reset(user_id):

@@ -1,14 +1,13 @@
+<source>https://alkem.io/digileefomgeving/challenges/energiebesparenin-8927</source>
+<type>challenge</type>
+Name: Energie besparen in de gebouwde omgeving
+Tagline: What wordt verspild? Hittescans, huidige status panten, objectieve vaststelling. Wat is het verband? Waar kan welk (energieopwek)middel worden toegepast?
+Tags: energie, besparen, energietransitie, dego
+Description: ...
+Vision: ...
+Visuals: 	card: https://alkem.io/api/private/rest/storage/document/2977331c-1ac6-489f-9331-cc98cda78978
+	avatar: https://alkem.io/api/private/rest/storage/document/aaad7d0c-d39e-4e36-85e2-d30482101e0c
+	banner: 
+References:
 
-      Name: Energie besparen in de gebouwde omgeving
-      Tagline: What wordt verspild? Hittescans, huidige status panten, objectieve vaststelling. Wat is het verband? Waar kan welk (energieopwek)middel worden toegepast?
-      Tags: energie, besparen, energietransitie, dego
-      Description: ...
-      Impact: 
-      Vision: ...
-      Who: 
-      card: https://alkem.io/api/private/rest/storage/document/2977331c-1ac6-489f-9331-cc98cda78978
-avatar: https://alkem.io/api/private/rest/storage/document/aaad7d0c-d39e-4e36-85e2-d30482101e0c
-banner: 
-      Location:   
-      URL: https://alkem.io/digileefomgeving/challenges/energiebesparenin-8927
-    
+URL: https://alkem.io/digileefomgeving/challenges/energiebesparenin-8927

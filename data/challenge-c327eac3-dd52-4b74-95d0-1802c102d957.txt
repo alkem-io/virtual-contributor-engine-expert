@@ -1,14 +1,13 @@
+<source>https://alkem.io/digileefomgeving/challenges/energietransitiebed-1642</source>
+<type>challenge</type>
+Name: Energietransitie bedrijventerrein
+Tagline: Grote kansen voor energiebesparing liggen op het bedrijventerrein
+Tags: energie, transitie, gebouwde omgeving, bedrijven terrein
+Description: Te weinig inzicht en te gedeeld eigenaarschap maken dat er nit genoeg profijt is
+Vision: Data helpt om inzicht te krijgen en een goede governance helpt in het realiseren van doelen (pakken van kansen)
+Visuals: 	card: https://alkem.io/api/private/rest/storage/document/04b0eb4e-fe40-4f15-b7ea-473217822e2a
+	avatar: https://alkem.io/api/private/rest/storage/document/aee0c7fb-a08b-4e6a-961f-889e79b2e49d
+	banner: 
+References:
 
-      Name: Energietransitie bedrijventerrein
-      Tagline: Grote kansen voor energiebesparing liggen op het bedrijventerrein
-      Tags: energie, transitie, gebouwde omgeving, bedrijven terrein
-      Description: Te weinig inzicht en te gedeeld eigenaarschap maken dat er nit genoeg profijt is
-      Impact: 
-      Vision: Data helpt om inzicht te krijgen en een goede governance helpt in het realiseren van doelen (pakken van kansen)
-      Who: 
-      card: https://alkem.io/api/private/rest/storage/document/04b0eb4e-fe40-4f15-b7ea-473217822e2a
-avatar: https://alkem.io/api/private/rest/storage/document/aee0c7fb-a08b-4e6a-961f-889e79b2e49d
-banner: 
-      Location:   
-      URL: https://alkem.io/digileefomgeving/challenges/energietransitiebed-1642
-    
+URL: https://alkem.io/digileefomgeving/challenges/energietransitiebed-1642

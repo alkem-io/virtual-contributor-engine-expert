@@ -1,19 +1,19 @@
+<source>https://alkem.io/digileefomgeving/challenges/3dnetherlands-9755</source>
+<type>challenge</type>
+Name: 3D Netherlands
+Tagline: Op basis van open code en open data een basis voor heel Nederland
+Tags: 3D, digital twin, open code, open data
+Description: Dé Digital Twin bestaat niet maar zo versnippert als we nu werken, is niet duurzaam. Over standaarden spreken we vaker dan dat we die in de praktijk ontwikkelen en valideren. Data modellen zitten vaak "verstopt" en dat zorgt dat we hetzelfde model elke keer opnieuw moeten uitvinden en dus financieren. Veel innovatie middelen worden niet duurzaam besteed omdat onafhankelijk van elkaar werken aan interne (punt) oplossingen. Middelen die beter besteed kunnen worden.
 
-      Name: 3D Netherlands
-      Tagline: Op basis van open code en open data een basis voor heel Nederland
-      Tags: 3D, digital twin, open code, open data
-      Description: Dé Digital Twin bestaat niet maar zo versnippert als we nu werken, is niet duurzaam. Over standaarden spreken we vaker dan dat we die in de praktijk ontwikkelen en valideren. Data modellen zitten vaak "verstopt" en dat zorgt dat we hetzelfde model elke keer opnieuw moeten uitvinden en dus financieren. Veel innovatie middelen worden niet duurzaam besteed omdat onafhankelijk van elkaar werken aan interne (punt) oplossingen. Middelen die beter besteed kunnen worden.
-
-      Impact: Vanuit de samenwerking tussen gemeenten Amsterdam en Utrecht is Team 3D Netherlands ontstaan met als doel om op basis van de open code en open data een digital twin van heel Nederland te maken. Waarmee gemeenten, provincies en anderen mee kunnen werken en in kunnen ontwikkelen.
+Impact: Vanuit de samenwerking tussen gemeenten Amsterdam en Utrecht is Team 3D Netherlands ontstaan met als doel om op basis van de open code en open data een digital twin van heel Nederland te maken. Waarmee gemeenten, provincies en anderen mee kunnen werken en in kunnen ontwikkelen.
 
 De samenwerking is groeiende en bestaat op dit moment uit Amsterdam, Utrecht, Rotterdam en provincies Utrecht en Flevoland. De sprint reviews zijn publieke toegankelijk voor een zo breed mogelijke samenwerking.
 
-      Vision: Een gedeelde visie op de keten van digital twin en voor heel Nederland een laagdrempelige toegankelijke 3D omgeving op basis van open code en open data waarmee "de overheid" aan de slag kan met de inhoudelijke opgave, op een manier waarbij we gebruik maken van elkaars ontwikkelingen en dus elke individuele investering een investering is in de BV Nederland.
+Vision: Een gedeelde visie op de keten van digital twin en voor heel Nederland een laagdrempelige toegankelijke 3D omgeving op basis van open code en open data waarmee "de overheid" aan de slag kan met de inhoudelijke opgave, op een manier waarbij we gebruik maken van elkaars ontwikkelingen en dus elke individuele investering een investering is in de BV Nederland.
 
-      Who: 
-      avatar: https://alkem.io/api/private/rest/storage/document/e1e2cd4f-b072-4853-9da5-3b26aab58e01
-banner: https://alkem.io/api/private/rest/storage/document/7206d411-8c8f-4f08-9532-9e87e3d57180
-card: https://alkem.io/api/private/rest/storage/document/d2ed4370-dd89-4467-9895-a83c2a1ef23f
-      Location:   
-      URL: https://alkem.io/digileefomgeving/challenges/3dnetherlands-9755
-    
+Visuals: 	avatar: https://alkem.io/api/private/rest/storage/document/e1e2cd4f-b072-4853-9da5-3b26aab58e01
+	banner: https://alkem.io/api/private/rest/storage/document/7206d411-8c8f-4f08-9532-9e87e3d57180
+	card: https://alkem.io/api/private/rest/storage/document/d2ed4370-dd89-4467-9895-a83c2a1ef23f
+References:
+
+URL: https://alkem.io/digileefomgeving/challenges/3dnetherlands-9755

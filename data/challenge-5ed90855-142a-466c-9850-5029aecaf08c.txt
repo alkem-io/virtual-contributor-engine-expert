@@ -1,20 +1,18 @@
+<source>https://alkem.io/digileefomgeving/challenges/casusseninwinningd-3085</source>
+<type>challenge</type>
+Name: Juridisch advies inwinning digital twin
+Tagline: ...
+Description: .
 
-      Name: Juridisch advies inwinning digital twin
-      Tagline: ...
-      Tags: 
-      Description: .
-
-      Impact: 
-      Vision: **Digital Twins, Auteurswet, Panoramavrijheid**
+Vision: **Digital Twins, Auteurswet, Panoramavrijheid**
 
 Verschillende partijen zijn bezig met 3D data en digital twins. Het gebruik en visualiseren van bepaalde data kan mogelijk belemmerd worden door het auteursrecht, zoals bij ontwerpen van gebouwen, bruggen of standbeelden. Gemeente Rotterdam, in het kader van de ontwikkeling hun 3D registratie en stadsmodel, juridisch advies gevraagd over de auteursrechten bij digital twins, en of dit past binnen de uitzondering panoramavrijheid in de auteurswet
 
 Het advies is echter gericht op een specifieke casus, een openstaande vraag gaat over de schaalbaarheid van dit advies. Vanuit de interbestuurlijke datastrategie (IBDS) is de [adviesfunctie Verantwoord Datagebruik](https://eur03.safelinks.protection.outlook.com/?url=https%3A%2F%2Frealisatieibds.pleio.nl%2Fwiki%2Fview%2Fe643ebdb-4101-4a23-aceb-c4534e1850e1%2Fadviesfunctie-verantwoord-datagebruik\&data=05%7C01%7Cmirko.deboer%40vng.nl%7C4faabc21727b464ef2d408db86b3e4e2%7C6ef029ab3fd74d989b0ed1f5fedea6d1%7C1%7C0%7C638251879450715542%7CUnknown%7CTWFpbGZsb3d8eyJWIjoiMC4wLjAwMDAiLCJQIjoiV2luMzIiLCJBTiI6Ik1haWwiLCJXVCI6Mn0%3D%7C3000%7C%7C%7C\&sdata=xdp44FMKR14J0enS19PLy%2BUKuCgcy%2Fl6FuOVm4nkRt4%3D\&reserved=0) beschikbaar om de schaalbaarheid van dit advies te onderzoeken, met juridisch advies van Pels Rijcken. Doel van dit onderzoek is om het specifieke (casus Rotterdam) generiek te maken, er daar is jullie bijdrage bij nodig.
 
-      Who: 
-      card: https://alkem.io/api/private/rest/storage/document/67172c96-cebe-4811-96d1-e0e1a0084265
-avatar: https://alkem.io/api/private/rest/storage/document/8e50040b-7a91-4729-8007-799e268af5ec
-banner: 
-      Location:   
-      URL: https://alkem.io/digileefomgeving/challenges/casusseninwinningd-3085
-    
+Visuals: 	card: https://alkem.io/api/private/rest/storage/document/67172c96-cebe-4811-96d1-e0e1a0084265
+	avatar: https://alkem.io/api/private/rest/storage/document/8e50040b-7a91-4729-8007-799e268af5ec
+	banner: 
+References:
+
+URL: https://alkem.io/digileefomgeving/challenges/casusseninwinningd-3085

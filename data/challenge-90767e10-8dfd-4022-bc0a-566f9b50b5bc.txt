@@ -1,14 +1,12 @@
+<source>https://alkem.io/digileefomgeving/challenges/datagedrevennplgzu-8467</source>
+<type>challenge</type>
+Name: Datagedreven NPLG Zuid-Holland
+Tagline: Gebiedsgericht werken aan natuur, water en klimaat
+Tags: data, natuur, landelijk
+Vision: De overheid wil vóór 2030 de natuur ruimte bieden voor herstel en versterking, de kwaliteit van water en bodem verbeteren en meer doen tegen klimaatverandering. Het Nationaal Programma Landelijk Gebied (NPLG) gaat samen met provincies, waterschappen, gemeenten en maatschappelijke partners, (agrarisch) ondernemers, grondeigenaren en grondgebruikers op zoek naar oplossingen per gebied. 
+Visuals: 	avatar: https://alkem.io/api/private/rest/storage/document/e2fc6692-c4bb-4588-8121-6c3bc8596d9b
+	card: https://alkem.io/api/private/rest/storage/document/eed51fa0-9587-4ab4-8b80-9c0fd1a7dda6
+	banner: https://alkem.io/api/private/rest/storage/document/c09dbe76-4738-4c2f-be09-11e4af941a88
+References:
 
-      Name: Datagedreven NPLG Zuid-Holland
-      Tagline: Gebiedsgericht werken aan natuur, water en klimaat
-      Tags: data, natuur, landelijk
-      Description: 
-      Impact: 
-      Vision: De overheid wil vóór 2030 de natuur ruimte bieden voor herstel en versterking, de kwaliteit van water en bodem verbeteren en meer doen tegen klimaatverandering. Het Nationaal Programma Landelijk Gebied (NPLG) gaat samen met provincies, waterschappen, gemeenten en maatschappelijke partners, (agrarisch) ondernemers, grondeigenaren en grondgebruikers op zoek naar oplossingen per gebied. 
-      Who: 
-      avatar: https://alkem.io/api/private/rest/storage/document/e2fc6692-c4bb-4588-8121-6c3bc8596d9b
-card: https://alkem.io/api/private/rest/storage/document/eed51fa0-9587-4ab4-8b80-9c0fd1a7dda6
-banner: https://alkem.io/api/private/rest/storage/document/c09dbe76-4738-4c2f-be09-11e4af941a88
-      Location:   
-      URL: https://alkem.io/digileefomgeving/challenges/datagedrevennplgzu-8467
-    
+URL: https://alkem.io/digileefomgeving/challenges/datagedrevennplgzu-8467
