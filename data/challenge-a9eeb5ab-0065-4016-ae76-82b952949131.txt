@@ -1,0 +1,12 @@
+<source>https://alkem.io/digileefomgeving/challenges/co2reductievoor20-9987</source>
+<type>challenge</type>
+Name: CO2 Reductie voor 2040
+Tagline: 40% reductie in 2024 tov 1990
+Description: ...   
+Vision: Op basis van op    dsddsgfsdgf...
+Visuals: 	avatar: https://alkem.io/api/private/rest/storage/document/63d57df8-4374-459b-8acb-e63b4b912715
+	banner: 
+	card: https://alkem.io/api/private/rest/storage/document/d187e5f8-82ba-4f41-b322-7473d9e25578
+References:
+
+URL: https://alkem.io/digileefomgeving/challenges/co2reductievoor20-9987

@@ -1,0 +1,7 @@
+<source>https://alkem.io/digileefomgeving/challenges/datagedrevennplgzu-8467/collaboration/collaboratevisually-5161</source>
+<type>callout</type>
+Name: Use cases
+Description: Hier vind je de uitgewerkte use case en een leeg template om in verder te werken!
+References:
+
+URL: https://alkem.io/digileefomgeving/challenges/datagedrevennplgzu-8467/collaboration/collaboratevisually-5161

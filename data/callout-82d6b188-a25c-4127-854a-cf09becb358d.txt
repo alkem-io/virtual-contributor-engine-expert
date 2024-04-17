@@ -1,0 +1,7 @@
+<source>https://alkem.io/digileefomgeving/challenges/energiebesparenin-8927/collaboration/15decemberuse-case-9286</source>
+<type>callout</type>
+Name: 15 december use-case
+Description: Tijdens de werksessie op 15 december is deze use-case uitgewerkt door een team van VNG door Paul Suijkerbuijk
+References:
+
+URL: https://alkem.io/digileefomgeving/challenges/energiebesparenin-8927/collaboration/15decemberuse-case-9286

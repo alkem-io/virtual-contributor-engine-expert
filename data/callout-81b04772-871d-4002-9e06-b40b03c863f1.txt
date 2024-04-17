@@ -1,0 +1,14 @@
+<source>https://alkem.io/digileefomgeving/challenges/bredewelvaart-9562/collaboration/vragenopmerkingen-6619</source>
+<type>callout</type>
+Name: Vragen? Opmerkingen? Reacties? 
+Tags: Digital Twin, Brede Welvaart
+Description: Zet ze hier!
+
+References:
+
+URL: https://alkem.io/digileefomgeving/challenges/bredewelvaart-9562/collaboration/vragenopmerkingen-6619
+Messages:
+	Mirko de Boer with profile link https://alkem.io/user/mirko-deboer-6907 said 'Reactie van Evan over de spiraal van verschraling: https://www.rli.nl/sites/default/files/sociaal_bestek_-editie_2_april_2023-_artikel_hoe_doorbreken_we_de_spiraal_van_verschraling_-_auteur_rli.pdf' on 9/26/2023, 11:28:27 AM
+	Mirko de Boer with profile link https://alkem.io/user/mirko-deboer-6907 said 'Reactie Janneke over WMO Voorspelmodel: 
+Ter info: https://vng.nl/projecten/wmo-voorspelmodel
+Het dashboard: https://wmovoorspelmodel.vng.nl/' on 9/26/2023, 12:07:45 PM

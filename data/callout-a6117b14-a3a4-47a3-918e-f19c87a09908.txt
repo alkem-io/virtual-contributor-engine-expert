@@ -1,0 +1,13 @@
+<source>https://alkem.io/digileefomgeving/challenges/bredewelvaart-9562/collaboration/sessie2bredewel-2986</source>
+<type>callout</type>
+Name: Sessie #2: Brede Welvaart in de Digital Twin
+Tags: Digital Twin, Brede Welvaart
+Description: 27 juni hebben we elkaar gesproken over de kansen voor de koppeling tussen Digital Twin en brede welvaart.
+
+In dit vervolg op de eerste verkenning en hiervoor hebben we gemeente Assen en Clappform te gast.
+
+In Assen wordt de leefbaarheidsmonitor ontwikkeld (waarbij nu gekeken naar de API van WSJG) en geeft een heel goed inzicht en duidelijk beeld van de staat van de inwoners. De leefbaarheidsmonitor zou een goede basis kunnen zijn om in de Digital Twin te visualiseren.
+
+References:
+
+URL: https://alkem.io/digileefomgeving/challenges/bredewelvaart-9562/collaboration/sessie2bredewel-2986

@@ -1,0 +1,13 @@
+<source>https://alkem.io/digileefomgeving/challenges/communitymanagement-3423/collaboration/swotanalysecommuni-7620</source>
+<type>callout</type>
+Name: SWOT analyse 
+Description: Draag bij aan deze SWOT analyse! Vul gewoon je hersenspinsels in, er zijn geen foute antwoorden! Je kan door op het plusje te klikken direct op het whiteboard schrijven, maar je kunt ook je input in de reacties zetten.
+
+Het idee is dat deze analyse bijdraagt aan een scherp plan voor het managen van de community's.
+
+References:
+	Reference name: Uitleg SWOT analyse:
+	Reference description: 
+	Uri: https://www.kvk.nl/advies-en-informatie/marketing/swot-analyse-maken/
+
+URL: https://alkem.io/digileefomgeving/challenges/communitymanagement-3423/collaboration/swotanalysecommuni-7620

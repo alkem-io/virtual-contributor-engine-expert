@@ -1,0 +1,14 @@
+<source>https://alkem.io/digileefomgeving/challenges/bredewelvaart-9562</source>
+<type>challenge</type>
+Name: Brede welvaart
+Tagline: Hoe kunnen we met gebruik van data en 3d visualisatie brede welvaart in beeld brengen?
+Description: <br>
+
+Vision: Een 3d model waarin de mate van brede welvaart direct inzichtelijk wordt
+
+Visuals: 	card: https://alkem.io/api/private/rest/storage/document/95a5e299-a7f7-4173-a4d9-7a73dc9ac4cc
+	avatar: https://alkem.io/api/private/rest/storage/document/3c0ff111-82f3-406d-8d7f-5db4e06142e7
+	banner: 
+References:
+
+URL: https://alkem.io/digileefomgeving/challenges/bredewelvaart-9562

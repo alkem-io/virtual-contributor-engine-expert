@@ -1,0 +1,13 @@
+<source>https://alkem.io/digileefomgeving/challenges/bredewelvaart-9562/collaboration/verslagsessie1vr-793</source>
+<type>callout</type>
+Name: Verslag sessie 1: Vraagarticulatie
+Tags: Digital Twin, Brede Welvaart, Gezondheid, 3D
+Description: Aan verschillende tafels wordt gesproken over het inrichten van een ‘Digital Twin’ als instrument om data over Brede Welvaart en gezondheidsachterstanden te visualiseren.
+
+<br>
+
+Om hier concrete stappen in te zetten zijn we 27 juni samengekomen voor een online meeting met een aantal partijen. Centraal in deze sessie stond niet de digital twin maar de vraag: welke data wil je zien, op welke manier wil je dat zien en wat kun je daar dan mee in de opgave? De sessie gaat dus over de opgave vanuit sociaal domein – de technologie is zoals het hoort dienend.
+
+References:
+
+URL: https://alkem.io/digileefomgeving/challenges/bredewelvaart-9562/collaboration/verslagsessie1vr-793

@@ -1,0 +1,6 @@
+.DS_Store
+.env
+__pycache__
+app.log
+vectordb
+ingestion_output.txt

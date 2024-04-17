@@ -1,0 +1,17 @@
+<source>https://alkem.io/digileefomgeving/challenges/nieuwewoningenine-632</source>
+<type>challenge</type>
+Name: Nieuwe woningen in een gezonde leefomgeving
+Tagline: De woning opgave vraagt om een integrale visie op de omgeving.
+Tags: wonen, woonopgave, leefomgeving
+Description: Planvorming is niet integraal genoeg en besluitvorming ruimtelijke ordening is te traag.
+Vision: Snellere en betere vergunningverlening
+
+Model beschikbaar stellen voor ondersteuning in besluitvorming
+
+Model bij ondersteuning op handhaving
+Visuals: 	banner: https://alkem.io/api/private/rest/storage/document/fcacd3b1-ee41-4e14-ad45-467aaa47d172
+	card: https://alkem.io/api/private/rest/storage/document/3c03e7a4-3a23-4ba2-be07-1fac13e8bdc3
+	avatar: https://alkem.io/api/private/rest/storage/document/3c03e7a4-3a23-4ba2-be07-1fac13e8bdc3
+References:
+
+URL: https://alkem.io/digileefomgeving/challenges/nieuwewoningenine-632

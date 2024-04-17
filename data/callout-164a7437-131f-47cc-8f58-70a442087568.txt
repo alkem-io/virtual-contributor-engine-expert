@@ -1,0 +1,12 @@
+<source>https://alkem.io/digileefomgeving/challenges/learnditwin-learning-2041/collaboration/recommendations</source>
+<type>callout</type>
+Name: Recommended by the Host
+Description: Please find below quick start links.
+References:
+
+URL: https://alkem.io/digileefomgeving/challenges/learnditwin-learning-2041/collaboration/recommendations
+Contributions:
+
+References:
+
+URL: 

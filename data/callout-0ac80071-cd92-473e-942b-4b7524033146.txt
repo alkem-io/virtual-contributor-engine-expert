@@ -1,0 +1,7 @@
+<source>https://alkem.io/digileefomgeving/challenges/co2reductievoor20-9987/collaboration/collaboratevisually-9374</source>
+<type>callout</type>
+Name: Collaborate visually
+Description: Collaborate visually using Canvases. Create a new Canvas from a template, or explore Canvases already created.
+References:
+
+URL: https://alkem.io/digileefomgeving/challenges/co2reductievoor20-9987/collaboration/collaboratevisually-9374

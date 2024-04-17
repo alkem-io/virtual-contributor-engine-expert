@@ -1,0 +1,12 @@
+<source>https://alkem.io/digileefomgeving/challenges/datagedrevennplgzu-8467/collaboration/voorafbekendebelem-2103</source>
+<type>callout</type>
+Name: Vooraf bekende belemmeringen
+Description: In de workshop hebben we onderstaande belemmeringen geïdentificeerd. Welke andere vooraf bekende belemmeringen zijn er nog meer en wie of wat kunnen we doen om deze te beslechten. Graag jullie input!
+
+<br>
+
+![](https://alkem.io/api/private/rest/storage/document/3157697f-0d4f-4732-83b5-925ac00a9e8e)
+
+References:
+
+URL: https://alkem.io/digileefomgeving/challenges/datagedrevennplgzu-8467/collaboration/voorafbekendebelem-2103

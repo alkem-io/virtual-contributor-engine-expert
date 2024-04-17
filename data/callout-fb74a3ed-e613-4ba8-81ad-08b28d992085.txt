@@ -1,0 +1,7 @@
+<source>https://alkem.io/digileefomgeving/challenges/learnditwin-learning-2041/collaboration/suggestions</source>
+<type>callout</type>
+Name: Suggestions, Questions, and Feedback
+Description: Please share it here :)
+References:
+
+URL: https://alkem.io/digileefomgeving/challenges/learnditwin-learning-2041/collaboration/suggestions
