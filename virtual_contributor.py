@@ -1,46 +1,17 @@
-import re
-from langchain.callbacks import get_openai_callback
-from langchain.memory import ConversationBufferWindowMemory
-
-
-# import pika
-import json
-import ai_adapter
-import logging
-import sys
-import io
 import asyncio
-import os
-import aio_pika
-import aiormq
 import json
-from aio_pika import connect, RobustConnection
-from config import config, local_path, LOG_LEVEL
+import re
 
-# configure logging
-logger = logging.getLogger(__name__)
-assert LOG_LEVEL in ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
-logger.setLevel(getattr(logging, LOG_LEVEL))  # Set logger level
+import aiormq
+import aio_pika
+from aio_pika import RobustConnection, connect
+from langchain.callbacks import get_openai_callback
 
+import ai_adapter
+from config import config
+from logger import setup_logger
 
-# Create handlers
-c_handler = logging.StreamHandler(io.TextIOWrapper(sys.stdout.buffer, line_buffering=True))
-f_handler = logging.FileHandler(os.path.join(os.path.expanduser(local_path), 'app.log'))
-
-c_handler.setLevel(level=getattr(logging, LOG_LEVEL))
-f_handler.setLevel(logging.WARNING)
-
-# Create formatters and add them to handlers
-c_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', '%m-%d %H:%M:%S')
-f_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', '%m-%d %H:%M:%S')
-c_handler.setFormatter(c_format)
-f_handler.setFormatter(f_format)
-
-# Add handlers to the logger
-logger.addHandler(c_handler)
-logger.addHandler(f_handler)
-
-logger.info(f"log level {os.path.basename(__file__)}: {LOG_LEVEL}")
+logger = setup_logger(__name__)
 
 # define variables
 user_data = {}
@@ -51,6 +22,7 @@ user_locks = {}
 user_tasks = {}
 # Lock to prevent multiple ingestions from happening at the same time
 ingestion_lock = asyncio.Lock()
+
 
 class RabbitMQ:
     def __init__(self, host, login, password, queue):
@@ -63,36 +35,34 @@ class RabbitMQ:
 
     async def connect(self):
         self.connection: RobustConnection = await connect(
-            host=self.host,
-            login=self.login,
-            password=self.password
+            host=self.host, login=self.login, password=self.password
         )
         self.channel = await self.connection.channel()
         await self.channel.declare_queue(self.queue, auto_delete=False)
 
 
 rabbitmq = RabbitMQ(
-    host=config['rabbitmq_host'],
-    login=config['rabbitmq_user'],
-    password=config['rabbitmq_password'],
-    queue=config['rabbitmqrequestqueue']
+    host=config["rabbitmq_host"],
+    login=config["rabbitmq_user"],
+    password=config["rabbitmq_password"],
+    queue=config["rabbitmq_queue"],
 )
+
 
 async def query(user_id, message):
     async with ingestion_lock:
 
-        # trim the VC tag   
-        message['question'] = re.sub(r"\[@.*\d\d\)", '', message['question']).strip()
+        # trim the VC tag
+        message["question"] = re.sub(r"\[@.*\d\d\)", "", message["question"]).strip()
 
         logger.info(f"\nQuery from user {user_id}: {message['question']}\n")
-         
 
         with get_openai_callback() as cb:
             llm_result = await ai_adapter.query_chain(message)
-            answer = llm_result['answer']
+            answer = llm_result["answer"]
 
         # clean up the document sources to avoid sending too much information over.
-        sources = [metadata['source'] for metadata in llm_result['source_documents']]
+        sources = [metadata["source"] for metadata in llm_result["source_documents"]]
         logger.debug(f"\n\nsources: {sources}\n\n")
 
         logger.debug(f"\nTotal Tokens: {cb.total_tokens}")
@@ -104,14 +74,25 @@ async def query(user_id, message):
         logger.info(f"\n\nanswer: {answer}\n\n")
         logger.debug(f"\n\nsources: {sources}\n\\ n")
 
-        response = json.dumps({"question": message['question'], "answer": str(answer.content), "sources": sources, "prompt_tokens": cb.prompt_tokens,
-                              "completion_tokens": cb.completion_tokens, "total_tokens": cb.total_tokens, "total_cost": cb.total_cost})
+        response = json.dumps(
+            {
+                "question": message["question"],
+                "answer": str(answer.content),
+                "sources": sources,
+                "prompt_tokens": cb.prompt_tokens,
+                "completion_tokens": cb.completion_tokens,
+                "total_tokens": cb.total_tokens,
+                "total_cost": cb.total_cost,
+            }
+        )
         return response
 
+
 def reset(user_id):
-    user_data[user_id]['chat_history'].clear()
+    user_data[user_id]["chat_history"].clear()
 
     return "Reset function executed"
+
 
 async def on_request(message: aio_pika.IncomingMessage):
     async with message.process():
@@ -121,9 +102,11 @@ async def on_request(message: aio_pika.IncomingMessage):
         logger.info(body)
 
         # Get the user ID from the message body
-        user_id = body['data']['userId']
+        user_id = body["data"]["userId"]
 
-        logger.info(f"\nrequest arriving for user id: {user_id}, deciding what to do\n\n")
+        logger.info(
+            f"\nrequest arriving for user id: {user_id}, deciding what to do\n\n"
+        )
 
         # If there's no lock for this user, create one
         if user_id not in user_locks:
@@ -131,7 +114,9 @@ async def on_request(message: aio_pika.IncomingMessage):
 
         # Check if the lock is locked
         if user_locks[user_id].locked():
-            logger.info(f"existing task running for user id: {user_id}, waiting for it to finish first\n\n")
+            logger.info(
+                f"existing task running for user id: {user_id}, waiting for it to finish first\n\n"
+            )
         else:
             logger.info(f"no task running for user id: {user_id}, let's move!\n\n")
 
@@ -143,22 +128,24 @@ async def on_request(message: aio_pika.IncomingMessage):
 
 async def process_message(message: aio_pika.IncomingMessage):
     body = json.loads(message.body.decode())
-    user_id = body['data'].get('userId')
+    user_id = body["data"].get("userId")
 
     logger.info(body)
 
-    operation = body['pattern']['cmd']
+    operation = body["pattern"]["cmd"]
 
     if user_id is None:
         response = "userId not provided"
     else:
-        if operation == 'query':
-            if ('question' in body['data']):
-                logger.info(f"query time for user id: {user_id}, let's call the query() function!\n\n")
-                response = await query(user_id, body['data'])
+        if operation == "query":
+            if "question" in body["data"]:
+                logger.info(
+                    f"query time for user id: {user_id}, let's call the query() function!\n\n"
+                )
+                response = await query(user_id, body["data"])
             else:
                 response = "Query parameter(s) not provided"
-        elif operation == 'reset':
+        elif operation == "reset":
             response = reset(user_id)
         else:
             response = "Unknown function"
@@ -172,14 +159,18 @@ async def process_message(message: aio_pika.IncomingMessage):
             aio_pika.Message(
                 body=json.dumps({"operation": "feedback", "result": response}).encode(),
                 correlation_id=message.correlation_id,
-                reply_to=message.reply_to
+                reply_to=message.reply_to,
             ),
-            routing_key=message.reply_to
+            routing_key=message.reply_to,
         )
         logger.info(f"Response sent for correlation_id: {message.correlation_id}")
         logger.info(f"Response sent to: {message.reply_to}")
         logger.debug(f"response: {response}")
-    except (aio_pika.exceptions.AMQPError, asyncio.exceptions.CancelledError, aiormq.exceptions.ChannelInvalidStateError) as e:
+    except (
+        aio_pika.exceptions.AMQPError,
+        asyncio.exceptions.CancelledError,
+        aiormq.exceptions.ChannelInvalidStateError,
+    ) as e:
         logger.error(f"Failed to publish message due to a RabbitMQ error: {e}")
 
 
@@ -200,6 +191,7 @@ async def main():
     # This will keep the program running indefinitely
     stop_event = asyncio.Event()
     await stop_event.wait()
+
 
 loop = asyncio.get_event_loop()
 loop.run_until_complete(main())

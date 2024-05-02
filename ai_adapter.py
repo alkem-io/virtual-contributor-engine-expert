@@ -1,40 +1,20 @@
 import os
-import logging
-import sys
-import io
 import chromadb
 import chromadb.utils.embedding_functions as embedding_functions
-from langchain_core.prompts import HumanMessagePromptTemplate, SystemMessagePromptTemplate
+from langchain_core.prompts import (
+    HumanMessagePromptTemplate,
+    SystemMessagePromptTemplate,
+)
 from langchain.prompts.prompt import PromptTemplate
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder, PromptTemplate
 from langchain_openai import AzureChatOpenAI
 from config import config, local_path, LOG_LEVEL, max_token_limit
 
-logger = logging.getLogger(__name__)
-assert LOG_LEVEL in [ 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
-logger.setLevel(getattr(logging, LOG_LEVEL))  # Set logger level
 
+import os
+from logger import setup_logger
 
-# Create handlers
-c_handler = logging.StreamHandler(
-        io.TextIOWrapper(sys.stdout.buffer, line_buffering=True)
-        )
-f_handler = logging.FileHandler(os.path.join(os.path.expanduser(local_path), 'app.log'))
-
-c_handler.setLevel(level=getattr(logging, LOG_LEVEL))
-f_handler.setLevel(logging.WARNING)
-
-# Create formatters and add them to handlers
-c_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', '%m-%d %H:%M:%S')
-f_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', '%m-%d %H:%M:%S')
-c_handler.setFormatter(c_format)
-f_handler.setFormatter(f_format)
-
-# Add handlers to the logger
-logger.addHandler(c_handler)
-logger.addHandler(f_handler)
-
-logger.info(f"log level {os.path.basename(__file__)}: {LOG_LEVEL}")
+logger = setup_logger(__name__)
 
 # verbose output for LLMs
 if LOG_LEVEL == "DEBUG":
@@ -74,48 +54,51 @@ chat_prompt = ChatPromptTemplate.from_messages(
 )
 
 
-llm = AzureChatOpenAI(azure_deployment=config['llm_deployment_name'],
-                           temperature=float(config['model_temperature']),
-                           max_tokens=max_token_limit, verbose=verbose_models)
+llm = AzureChatOpenAI(
+    azure_deployment=config["llm_deployment_name"],
+    temperature=float(config["model_temperature"]),
+    max_tokens=max_token_limit,
+    verbose=verbose_models,
+)
 
 
 embed_func = embedding_functions.OpenAIEmbeddingFunction(
-        api_key=config['openai_api_key'],
-        api_base=config['openai_endpoint'],
-        api_type="azure",
-        api_version=config['openai_api_version'],
-        model_name=config['embeddings_deployment_name'], 
-    )
+    api_key=config["openai_api_key"],
+    api_base=config["openai_endpoint"],
+    api_type="azure",
+    api_version=config["openai_api_version"],
+    model_name=config["embeddings_deployment_name"],
+)
 
-def _combine_documents(
-    docs, document_separator="\n\n"
-):
+
+def _combine_documents(docs, document_separator="\n\n"):
     return document_separator.join(docs)
+
 
 async def query_chain(message):
 
     logger.info(message)
-    logger.info(message['spaceNameID'])
+    logger.info(message["spaceNameID"])
 
-    chroma_client = chromadb.HttpClient(host=config['db_host'], port=config['db_port'])
+    chroma_client = chromadb.HttpClient(host=config["db_host"], port=config["db_port"])
 
-    collection = chroma_client.get_collection(message['spaceNameID'], embedding_function=embed_func)
+    collection = chroma_client.get_collection(
+        message["spaceNameID"], embedding_function=embed_func
+    )
 
-    docs = collection.query(query_texts=[message['question']], n_results=4)
+    docs = collection.query(query_texts=[message["question"]], n_results=4)
 
-    logger.info(docs['ids'])
+    logger.info(docs["ids"])
 
     review_system_prompt = SystemMessagePromptTemplate(
-    prompt=PromptTemplate(
-        input_variables=["context"],
-        template=chat_system_template
-    )
+        prompt=PromptTemplate(
+            input_variables=["context"], template=chat_system_template
+        )
     )
 
     review_human_prompt = HumanMessagePromptTemplate(
         prompt=PromptTemplate(
-            input_variables=["question"],
-            template=condense_question_template
+            input_variables=["question"], template=condense_question_template
         )
     )
 
@@ -128,6 +111,11 @@ async def query_chain(message):
 
     review_chain = review_prompt_template | llm
 
-    result = review_chain.invoke({"question": message["question"], "context": _combine_documents(docs['documents'][0]) })
+    result = review_chain.invoke(
+        {
+            "question": message["question"],
+            "context": _combine_documents(docs["documents"][0]),
+        }
+    )
 
-    return {'answer': result, 'source_documents': docs['metadatas'][0]}
+    return {"answer": result, "source_documents": docs["metadatas"][0]}
