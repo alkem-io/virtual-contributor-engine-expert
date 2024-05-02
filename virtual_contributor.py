@@ -71,7 +71,6 @@ class RabbitMQ:
         await self.channel.declare_queue(self.queue, auto_delete=False)
 
 
-logger.info(config)
 rabbitmq = RabbitMQ(
     host=config['rabbitmq_host'],
     login=config['rabbitmq_user'],
@@ -79,33 +78,21 @@ rabbitmq = RabbitMQ(
     queue=config['rabbitmqrequestqueue']
 )
 
-async def query(user_id, query, language_code):
+async def query(user_id, message):
     async with ingestion_lock:
 
         # trim the VC tag   
-        query = re.sub(r"\[@.*\d\d\)", '', query).strip()
+        message['question'] = re.sub(r"\[@.*\d\d\)", '', message['question']).strip()
 
-        logger.info(f"\nQuery from user {user_id}: {query}\n")
+        logger.info(f"\nQuery from user {user_id}: {message['question']}\n")
          
 
-        if user_id not in user_data:
-            user_data[user_id] = {}
-            user_data[user_id]['chat_history'] = ConversationBufferWindowMemory(k=3, return_messages=True, output_key="answer", input_key="question")
-            # user_chain[user_id]=ai_utils.setup_chain()
-            reset(user_id)
-            # chat_history=[]
-
-        user_data[user_id]['language'] = language_code
-
-        logger.debug(f"\nlanguage: {user_data[user_id]['language']}\n")
-        # chat_history = user_data[user_id]['chat_history']
-
         with get_openai_callback() as cb:
-            llm_result = await ai_adapter.query_chain({"question": query }, {"language": user_data[user_id]['language']}, user_data[user_id]['chat_history'])
+            llm_result = await ai_adapter.query_chain(message)
             answer = llm_result['answer']
 
         # clean up the document sources to avoid sending too much information over.
-        sources = [doc.metadata['source'] for doc in llm_result['source_documents']]
+        sources = [metadata['source'] for metadata in llm_result['source_documents']]
         logger.debug(f"\n\nsources: {sources}\n\n")
 
         logger.debug(f"\nTotal Tokens: {cb.total_tokens}")
@@ -117,9 +104,7 @@ async def query(user_id, query, language_code):
         logger.info(f"\n\nanswer: {answer}\n\n")
         logger.debug(f"\n\nsources: {sources}\n\\ n")
 
-        user_data[user_id]['chat_history'].save_context({"question": query}, {"answer": answer.content})
-        logger.debug(f"new chat history {user_data[user_id]['chat_history']}\n")
-        response = json.dumps({"question": query, "answer": str(answer.content), "sources": sources, "prompt_tokens": cb.prompt_tokens,
+        response = json.dumps({"question": message['question'], "answer": str(answer.content), "sources": sources, "prompt_tokens": cb.prompt_tokens,
                               "completion_tokens": cb.completion_tokens, "total_tokens": cb.total_tokens, "total_cost": cb.total_cost})
         return response
 
@@ -132,6 +117,8 @@ async def on_request(message: aio_pika.IncomingMessage):
     async with message.process():
         # Parse the message body as JSON
         body = json.loads(message.body)
+
+        logger.info(body)
 
         # Get the user ID from the message body
         user_id = body['data']['userId']
@@ -168,7 +155,7 @@ async def process_message(message: aio_pika.IncomingMessage):
         if operation == 'query':
             if ('question' in body['data']):
                 logger.info(f"query time for user id: {user_id}, let's call the query() function!\n\n")
-                response = await query(user_id, body['data']['question'], 'English')
+                response = await query(user_id, body['data'])
             else:
                 response = "Query parameter(s) not provided"
         elif operation == 'reset':

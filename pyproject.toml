@@ -1,28 +1,24 @@
 [tool.poetry]
-name = "guidance-engine"
-version = "0.6.1"
-description = "Alkemio Generative AI Guidance Engine"
+name = "virtual-contributor-service"
+version = "0.0.1"
+description = "Basic Virtual Contributor service for Alkemio"
 authors = ["Alkemio BV <info@alkem.io>"]
 license = "EUPL-1.2"
 readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "~3.11"
 langchain = "^0.0.354"
 langchain-core= "^0.1.5"
 langchain-community = ">=0.0.8"
-python-dotenv = "^1.0.0"
-faiss-cpu = "^1.7.4"
 openai = "^1.3.8"
 load-dotenv = "^0.1.0"
-beautifulsoup4 = "^4.12.2"
 async-timeout = "^4.0.3"
 aio-pika = "^9.3.1"
 aiormq = "^6.7.7"
-tiktoken = "^0.5.2"
 langchain-openai = "^0.0.2"
-unstructured = "^0.13.2"
-nltk = "^3.8.1"
+chromadb-client = "^0.4.25.dev0"
 
 
 [tool.poetry.group.dev.dependencies]

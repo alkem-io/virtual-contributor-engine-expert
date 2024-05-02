@@ -1,7 +1,0 @@
-<source>https://alkem.io/digileefomgeving/challenges/nieuwewoningenine-632/collaboration/suggestionsquestio-3383</source>
-<type>callout</type>
-Name: Suggestions, Questions, and Feedback
-Description: Please share it here :)
-References:
-
-URL: https://alkem.io/digileefomgeving/challenges/nieuwewoningenine-632/collaboration/suggestionsquestio-3383

@@ -1,7 +1,0 @@
-<source>https://alkem.io/digileefomgeving/challenges/nieuwewoningenine-632/collaboration/whydoyoucareabou-7715</source>
-<type>callout</type>
-Name: Why do you care about this Challenge?
-Description: Please share why this Challenge is important to you as well as any relevant thoughts, experience or expertise.
-References:
-
-URL: https://alkem.io/digileefomgeving/challenges/nieuwewoningenine-632/collaboration/whydoyoucareabou-7715

@@ -1,36 +1,24 @@
-import json
-from langchain.vectorstores import FAISS
-from langchain_core.prompts import HumanMessagePromptTemplate, SystemMessagePromptTemplate
-from langchain_openai import AzureOpenAIEmbeddings
-from langchain_openai import AzureOpenAI
-from langchain.prompts.prompt import PromptTemplate
-from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder, PromptTemplate
-from langchain_openai import AzureChatOpenAI
-from langchain.schema import StrOutputParser
-from langchain_core.runnables import RunnableLambda, RunnablePassthrough
-from langchain.schema import format_document
-from langchain_core.messages import get_buffer_string
-from langchain_core.messages.ai import AIMessage
-from langchain_core.runnables import RunnableBranch
-from langchain.callbacks import get_openai_callback
-
-from operator import itemgetter
+import os
 import logging
 import sys
 import io
-from config import config, vectordb_path, local_path, LOG_LEVEL, max_token_limit
-from ingest import ingest
+import chromadb
+import chromadb.utils.embedding_functions as embedding_functions
+from langchain_core.prompts import HumanMessagePromptTemplate, SystemMessagePromptTemplate
+from langchain.prompts.prompt import PromptTemplate
+from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder, PromptTemplate
+from langchain_openai import AzureChatOpenAI
+from config import config, local_path, LOG_LEVEL, max_token_limit
 
-
-import os
-# configure logging
 logger = logging.getLogger(__name__)
-assert LOG_LEVEL in ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+assert LOG_LEVEL in [ 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
 logger.setLevel(getattr(logging, LOG_LEVEL))  # Set logger level
 
 
 # Create handlers
-c_handler = logging.StreamHandler(io.TextIOWrapper(sys.stdout.buffer, line_buffering=True))
+c_handler = logging.StreamHandler(
+        io.TextIOWrapper(sys.stdout.buffer, line_buffering=True)
+        )
 f_handler = logging.FileHandler(os.path.join(os.path.expanduser(local_path), 'app.log'))
 
 c_handler.setLevel(level=getattr(logging, LOG_LEVEL))
@@ -55,30 +43,6 @@ else:
     verbose_models = False
 
 # define internal configuration parameters
-
-# does chain return the source documents?
-return_source_documents = True
-
-
-# Define a dictionary containing country codes as keys and related languages as values
-
-language_mapping = {
-    'EN': 'English',
-    'US': 'English',
-    'UK': 'English',
-    'FR': 'French',
-    'DE': 'German',
-    'ES': 'Spanish',
-    'NL': 'Dutch',
-    'BG': 'Bulgarian',
-    'UA': "Ukranian"
-}
-
-# function to retrieve language from country
-def get_language_by_code(language_code):
-    """Returns the language associated with the given code. If no match is found, it returns 'English'."""
-    return language_mapping.get(language_code, 'English')
-
 
 chat_system_template = """
 You are a friendly and talkative conversational agent, tasked with answering questions based on the context provided below delimited by triple pluses.
@@ -110,64 +74,36 @@ chat_prompt = ChatPromptTemplate.from_messages(
 )
 
 
-# generic_llm = AzureOpenAI(azure_deployment=os.environ["LLM_DEPLOYMENT_NAME"],
-#                           temperature=0, verbose=verbose_models)
-
-chat_llm = AzureChatOpenAI(azure_deployment=os.environ["LLM_DEPLOYMENT_NAME"],
-                           temperature=float(os.environ["AI_MODEL_TEMPERATURE"]),
+llm = AzureChatOpenAI(azure_deployment=config['llm_deployment_name'],
+                           temperature=float(config['model_temperature']),
                            max_tokens=max_token_limit, verbose=verbose_models)
 
-# condense_llm = AzureChatOpenAI(azure_deployment=os.environ["LLM_DEPLOYMENT_NAME"],
-#                                temperature=0,
-                                # verbose=verbose_models)
 
-embeddings = AzureOpenAIEmbeddings(
-    azure_deployment=config['embeddings_deployment_name'],
-    chunk_size=1
-)
-
-def load_vector_db():
-    """
-    Purpose:
-        Load the data into the vector database.
-    Args:
-
-    Returns:
-        vectorstore: the vectorstore object
-    """
-    # Check if the vector database exists
-    if os.path.exists(vectordb_path + os.sep + "index.pkl"):
-        logger.info(f"The file vector database is present")
-    else:
-        logger.info(f"The file vector database is not present, ingesting")
-        ingest()
-
-    return FAISS.load_local(vectordb_path, embeddings)
-
-
-vectorstore = load_vector_db()
-
-retriever = vectorstore.as_retriever(search_type="similarity_score_threshold", search_kwargs={"score_threshold": .5})
-
-def format_docs(docs):
-    return "\n\n".join(doc.page_content for doc in docs)
-
-
-DEFAULT_DOCUMENT_PROMPT = PromptTemplate.from_template(template="{page_content}")
+embed_func = embedding_functions.OpenAIEmbeddingFunction(
+        api_key=config['openai_api_key'],
+        api_base=config['openai_endpoint'],
+        api_type="azure",
+        api_version=config['openai_api_version'],
+        model_name=config['embeddings_deployment_name'], 
+    )
 
 def _combine_documents(
-    docs, document_prompt=DEFAULT_DOCUMENT_PROMPT, document_separator="\n\n"
+    docs, document_separator="\n\n"
 ):
-    doc_strings = [format_document(doc, document_prompt) for doc in docs]
-    return document_separator.join(doc_strings)
+    return document_separator.join(docs)
 
-async def query_chain(question, language, chat_history):
+async def query_chain(message):
 
-    logger.info(question)
+    logger.info(message)
+    logger.info(message['spaceNameID'])
 
-    docs = retriever.invoke(question['question'])
+    chroma_client = chromadb.HttpClient(host=config['db_host'], port=config['db_port'])
 
-    logger.info(list(map(lambda d: d.metadata['source'], docs)))
+    collection = chroma_client.get_collection(message['spaceNameID'], embedding_function=embed_func)
+
+    docs = collection.query(query_texts=[message['question']], n_results=4)
+
+    logger.info(docs['ids'])
 
     review_system_prompt = SystemMessagePromptTemplate(
     prompt=PromptTemplate(
@@ -190,7 +126,8 @@ async def query_chain(question, language, chat_history):
         messages=messages,
     )
 
-    review_chain = review_prompt_template | chat_llm
+    review_chain = review_prompt_template | llm
 
-    result = review_chain.invoke({"question": question["question"], "context": _combine_documents(docs) })
-    return {'answer': result, 'source_documents': docs}
+    result = review_chain.invoke({"question": message["question"], "context": _combine_documents(docs['documents'][0]) })
+
+    return {'answer': result, 'source_documents': docs['metadatas'][0]}
