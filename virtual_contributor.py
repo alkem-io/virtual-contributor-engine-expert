@@ -1,17 +1,20 @@
-import asyncio
-import json
 import re
-
-import aiormq
-import aio_pika
-from aio_pika import RobustConnection, connect
 from langchain.callbacks import get_openai_callback
-
+from langchain.memory import ConversationBufferWindowMemory
+import json
 import ai_adapter
-from config import config
+import asyncio
+import os
+import aio_pika
+import aiormq
+import json
+from aio_pika import connect_robust
+from config import config, LOG_LEVEL
 from logger import setup_logger
 
 logger = setup_logger(__name__)
+
+logger.info(f"log level {os.path.basename(__file__)}: {LOG_LEVEL}")
 
 # define variables
 user_data = {}
@@ -34,13 +37,14 @@ class RabbitMQ:
         self.channel = None
 
     async def connect(self):
-        self.connection: RobustConnection = await connect(
+        self.connection = await connect_robust(
             host=self.host, login=self.login, password=self.password
         )
         self.channel = await self.connection.channel()
         await self.channel.declare_queue(self.queue, auto_delete=False)
 
 
+logger.info(config)
 rabbitmq = RabbitMQ(
     host=config["rabbitmq_host"],
     login=config["rabbitmq_user"],
@@ -49,20 +53,46 @@ rabbitmq = RabbitMQ(
 )
 
 
-async def query(user_id, message):
+async def query(user_id, message_body, language_code):
     async with ingestion_lock:
 
         # trim the VC tag
-        message["question"] = re.sub(r"\[@.*\d\d\)", "", message["question"]).strip()
+        message_body["question"] = re.sub(
+            r"\[@.*\d\d\)", "", message_body["question"]
+        ).strip()
 
-        logger.info(f"\nQuery from user {user_id}: {message['question']}\n")
+        logger.info(f"\nQuery from user {user_id}: {message_body['question']}\n")
+
+        if user_id not in user_data:
+            user_data[user_id] = {}
+            user_data[user_id]["chat_history"] = ConversationBufferWindowMemory(
+                k=3, return_messages=True, output_key="answer", input_key="question"
+            )
+            reset(user_id)
+
+        user_data[user_id]["language"] = language_code
+
+        logger.debug(f"\nlanguage: {user_data[user_id]['language']}\n")
 
         with get_openai_callback() as cb:
-            llm_result = await ai_adapter.query_chain(message)
+            llm_result = await ai_adapter.query_chain(
+                message_body,
+                user_data[user_id]["language"],
+                user_data[user_id]["chat_history"],
+            )
             answer = llm_result["answer"]
 
         # clean up the document sources to avoid sending too much information over.
-        sources = [metadata["source"] for metadata in llm_result["source_documents"]]
+        sources = [
+            {
+                "title": "[{}] {}".format(
+                    doc["type"].replace("_", " ").lower().capitalize(),
+                    doc["title"],
+                ),
+                "url": doc["source"],
+            }
+            for doc in llm_result["source_documents"]
+        ]
         logger.debug(f"\n\nsources: {sources}\n\n")
 
         logger.debug(f"\nTotal Tokens: {cb.total_tokens}")
@@ -74,9 +104,13 @@ async def query(user_id, message):
         logger.info(f"\n\nanswer: {answer}\n\n")
         logger.debug(f"\n\nsources: {sources}\n\\ n")
 
+        user_data[user_id]["chat_history"].save_context(
+            {"question": message_body["question"]}, {"answer": answer.content}
+        )
+        logger.debug(f"new chat history {user_data[user_id]['chat_history']}\n")
         response = json.dumps(
             {
-                "question": message["question"],
+                "question": message_body["question"],
                 "answer": str(answer.content),
                 "sources": sources,
                 "prompt_tokens": cb.prompt_tokens,
@@ -90,16 +124,13 @@ async def query(user_id, message):
 
 def reset(user_id):
     user_data[user_id]["chat_history"].clear()
-
     return "Reset function executed"
 
 
-async def on_request(message: aio_pika.IncomingMessage):
+async def on_request(message: aio_pika.abc.AbstractIncomingMessage):
     async with message.process():
         # Parse the message body as JSON
         body = json.loads(message.body)
-
-        logger.info(body)
 
         # Get the user ID from the message body
         user_id = body["data"]["userId"]
@@ -126,7 +157,7 @@ async def on_request(message: aio_pika.IncomingMessage):
             await process_message(message)
 
 
-async def process_message(message: aio_pika.IncomingMessage):
+async def process_message(message: aio_pika.abc.AbstractIncomingMessage):
     body = json.loads(message.body.decode())
     user_id = body["data"].get("userId")
 
@@ -142,7 +173,7 @@ async def process_message(message: aio_pika.IncomingMessage):
                 logger.info(
                     f"query time for user id: {user_id}, let's call the query() function!\n\n"
                 )
-                response = await query(user_id, body["data"])
+                response = await query(user_id, body["data"], "English")
             else:
                 response = "Query parameter(s) not provided"
         elif operation == "reset":
@@ -150,28 +181,33 @@ async def process_message(message: aio_pika.IncomingMessage):
         else:
             response = "Unknown function"
 
-    try:
-        if rabbitmq.connection.is_closed or rabbitmq.channel.is_closed:
-            logger.error("Connection or channel is not open. Cannot publish message.")
-            return
+    if rabbitmq.connection and rabbitmq.channel:
+        try:
+            if rabbitmq.connection.is_closed or rabbitmq.channel.is_closed:
+                logger.error(
+                    "Connection or channel is not open. Cannot publish message."
+                )
+                return
 
-        await rabbitmq.channel.default_exchange.publish(
-            aio_pika.Message(
-                body=json.dumps({"operation": "feedback", "result": response}).encode(),
-                correlation_id=message.correlation_id,
-                reply_to=message.reply_to,
-            ),
-            routing_key=message.reply_to,
-        )
-        logger.info(f"Response sent for correlation_id: {message.correlation_id}")
-        logger.info(f"Response sent to: {message.reply_to}")
-        logger.debug(f"response: {response}")
-    except (
-        aio_pika.exceptions.AMQPError,
-        asyncio.exceptions.CancelledError,
-        aiormq.exceptions.ChannelInvalidStateError,
-    ) as e:
-        logger.error(f"Failed to publish message due to a RabbitMQ error: {e}")
+            await rabbitmq.channel.default_exchange.publish(
+                aio_pika.Message(
+                    body=json.dumps(
+                        {"operation": "feedback", "result": response}
+                    ).encode(),
+                    correlation_id=message.correlation_id,
+                    reply_to=message.reply_to,
+                ),
+                routing_key=message.reply_to or "",
+            )
+            logger.info(f"Response sent for correlation_id: {message.correlation_id}")
+            logger.info(f"Response sent to: {message.reply_to}")
+            logger.debug(f"response: {response}")
+        except (
+            aio_pika.exceptions.AMQPError,
+            asyncio.exceptions.CancelledError,
+            aiormq.exceptions.ChannelInvalidStateError,
+        ) as e:
+            logger.error(f"Failed to publish message due to a RabbitMQ error: {e}")
 
 
 async def main():
@@ -179,13 +215,14 @@ async def main():
     # rabbitmq is an instance of the RabbitMQ class defined earlier
     await rabbitmq.connect()
 
-    await rabbitmq.channel.set_qos(prefetch_count=20)
-    queue = await rabbitmq.channel.declare_queue(rabbitmq.queue, auto_delete=False)
+    if rabbitmq.channel:
+        await rabbitmq.channel.set_qos(prefetch_count=20)
+        queue = await rabbitmq.channel.declare_queue(rabbitmq.queue, auto_delete=False)
 
-    # Start consuming messages
-    asyncio.create_task(queue.consume(on_request))
+        # Start consuming messages
+        asyncio.create_task(queue.consume(on_request))
 
-    logger.info("Waiting for RPC requests")
+        logger.info("Waiting for RPC requests")
 
     # Create an Event that is never set, and wait for it forever
     # This will keep the program running indefinitely

@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "virtual-contributor-service"
-version = "0.0.1"
-description = "Basic Virtual Contributor service for Alkemio"
+name = "virtual-persona-engine"
+version = "0.2.0"
+description = "Alkemio Generative AI Virtul Persona"
 authors = ["Alkemio BV <info@alkem.io>"]
 license = "EUPL-1.2"
 readme = "README.md"

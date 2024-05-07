@@ -1,6 +1,6 @@
-import os
 import chromadb
-import chromadb.utils.embedding_functions as embedding_functions
+from chromadb.utils.embedding_functions import OpenAIEmbeddingFunction
+
 from langchain_core.prompts import (
     HumanMessagePromptTemplate,
     SystemMessagePromptTemplate,
@@ -8,6 +8,7 @@ from langchain_core.prompts import (
 from langchain.prompts.prompt import PromptTemplate
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder, PromptTemplate
 from langchain_openai import AzureChatOpenAI
+from numpy import source
 from config import config, local_path, LOG_LEVEL, max_token_limit
 
 
@@ -22,17 +23,16 @@ if LOG_LEVEL == "DEBUG":
 else:
     verbose_models = False
 
-# define internal configuration parameters
-
 chat_system_template = """
 You are a friendly and talkative conversational agent, tasked with answering questions based on the context provided below delimited by triple pluses.
 Use the following step-by-step instructions to respond to user inputs:
-
-1 - Provide an answer of 250 words or less that is professional, engaging, accurate and exthausive If the answer cannot be found within the context, write 'Hmm, I am not sure'. 
-2 - If the question is not is not professional write 'Unfortunately, I cannot answer that question'. 
-3 - Only return the answer from step 3, do not show any code or additional information.
-5 - Always answer in Dutch.
-
+1 - If the question is in a different language than Dutch, translate the question to Dutch before answering.
+2 - The text provided in the context delimited by triple pluses is retrieved from the Alkemio platform and is not part of the conversation with the user.
+3 - Provide an answer of 250 words or less that is professional, engaging, accurate and exthausive, based on the context delimited by triple pluses. \
+If the answer cannot be found within the context, write 'Hmm, I am not sure'. 
+4 - If the question is not specifically about Alkemio or if the question is not professional write 'Unfortunately, I cannot answer that question'. 
+5 - Only return the answer from step 3, do not show any code or additional information.
+6 - Answer in Dutch.
 +++
 {context}
 +++
@@ -62,7 +62,7 @@ llm = AzureChatOpenAI(
 )
 
 
-embed_func = embedding_functions.OpenAIEmbeddingFunction(
+embed_func = OpenAIEmbeddingFunction(
     api_key=config["openai_api_key"],
     api_base=config["openai_endpoint"],
     api_type="azure",
@@ -75,20 +75,26 @@ def _combine_documents(docs, document_separator="\n\n"):
     return document_separator.join(docs)
 
 
-async def query_chain(message):
+# how do we handle languages? not all spaces are in Dutch obviously
+# translating the question to the data _base language_ should be a separate call
+# so the translation could be used for embeddings retrieval
+async def query_chain(message, language, history):
 
-    logger.info(message)
-    logger.info(message["spaceNameID"])
-
-    chroma_client = chromadb.HttpClient(host=config["db_host"], port=config["db_port"])
-
-    collection = chroma_client.get_collection(
-        message["spaceNameID"], embedding_function=embed_func
+    space_name = message["spaceNameID"]
+    question = message["question"]
+    logger.info(
+        "Query chaing invoked for '%s' with question: %s" % (space_name, question)
     )
 
-    docs = collection.query(query_texts=[message["question"]], n_results=4)
+    chroma_client = chromadb.HttpClient(host=config["db_host"], port=config["db_port"])
+    collection = chroma_client.get_collection(space_name, embedding_function=embed_func)
 
-    logger.info(docs["ids"])
+    docs = collection.query(
+        query_texts=[question], include=["documents", "metadatas"], n_results=4
+    )
+
+    logger.info(docs["metadatas"])
+    logger.info("Documents with ids [%s] selected" % ",".join(list(docs["ids"][0])))
 
     review_system_prompt = SystemMessagePromptTemplate(
         prompt=PromptTemplate(
@@ -111,11 +117,13 @@ async def query_chain(message):
 
     review_chain = review_prompt_template | llm
 
-    result = review_chain.invoke(
-        {
-            "question": message["question"],
-            "context": _combine_documents(docs["documents"][0]),
-        }
-    )
+    if docs["documents"] and docs["metadatas"]:
+        result = review_chain.invoke(
+            {
+                "question": question,
+                "context": _combine_documents(docs["documents"][0]),
+            }
+        )
+        return {"answer": result, "source_documents": docs["metadatas"][0]}
 
-    return {"answer": result, "source_documents": docs["metadatas"][0]}
+    return {"answer": "", "source_documents": []}
