@@ -1,7 +1,0 @@
-<source>https://alkem.io/digileefomgeving/challenges/co2reductievoor20-9987/collaboration/contribute-7955</source>
-<type>callout</type>
-Name: Contribute
-Description: Contribute your insights to understanding the context. It is about surfacing up the wisdom of the community. Add your own card, or comment on aspects added by others.
-References:
-
-URL: https://alkem.io/digileefomgeving/challenges/co2reductievoor20-9987/collaboration/contribute-7955

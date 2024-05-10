@@ -1,6 +1,0 @@
-<source>https://alkem.io/digileefomgeving/challenges/communitymanagement-3423/collaboration/agendas2023commun-7030</source>
-<type>callout</type>
-Name: Agenda's 2023 Community Stand-up
-References:
-
-URL: https://alkem.io/digileefomgeving/challenges/communitymanagement-3423/collaboration/agendas2023commun-7030

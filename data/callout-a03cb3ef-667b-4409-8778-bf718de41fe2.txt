@@ -1,7 +1,0 @@
-<source>https://alkem.io/digileefomgeving/challenges/energiebesparenin-8927/collaboration/suggestionsquestio-2319</source>
-<type>callout</type>
-Name: Suggestions, Questions, and Feedback
-Description: Please share it here :)
-References:
-
-URL: https://alkem.io/digileefomgeving/challenges/energiebesparenin-8927/collaboration/suggestionsquestio-2319
