@@ -80,14 +80,19 @@ def _combine_documents(docs, document_separator="\n\n"):
 # so the translation could be used for embeddings retrieval
 async def query_chain(message, language, history):
 
-    space_name = message["spaceNameID"]
+    knowledge_space_name = "%s-knowledge" % message["kowledgeSpaceNameID"]
+    context_space_name = "%s-context" % message["contextSpaceNameID"]
     question = message["question"]
+
     logger.info(
-        "Query chaing invoked for '%s' with question: %s" % (space_name, question)
+        "Query chaing invoked for question: %s; spaces are: %s and %s"
+        % (question, knowledge_space_name, context_space_name)
     )
 
     chroma_client = chromadb.HttpClient(host=config["db_host"], port=config["db_port"])
-    collection = chroma_client.get_collection(space_name, embedding_function=embed_func)
+    collection = chroma_client.get_collection(
+        knowledge_space_name, embedding_function=embed_func
+    )
 
     docs = collection.query(
         query_texts=[question], include=["documents", "metadatas"], n_results=4
