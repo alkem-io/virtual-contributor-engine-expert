@@ -1,7 +1,0 @@
-<source>https://alkem.io/digileefomgeving/challenges/monitoringluchtkwal-3619/collaboration/recommendations</source>
-<type>callout</type>
-Name: Recommended by the Host
-Description: Please find below quick start links.
-References:
-
-URL: https://alkem.io/digileefomgeving/challenges/monitoringluchtkwal-3619/collaboration/recommendations

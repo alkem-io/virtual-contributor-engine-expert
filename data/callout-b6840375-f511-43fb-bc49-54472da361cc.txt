@@ -1,7 +1,0 @@
-<source>https://alkem.io/digileefomgeving/challenges/learnditwin-learning-2041/collaboration/card-default</source>
-<type>callout</type>
-Name: Contribute
-Description: Contribute your insights to understanding the context. It is about surfacing up the wisdom of the community. Add your own card, or comment on aspects added by others.
-References:
-
-URL: https://alkem.io/digileefomgeving/challenges/learnditwin-learning-2041/collaboration/card-default

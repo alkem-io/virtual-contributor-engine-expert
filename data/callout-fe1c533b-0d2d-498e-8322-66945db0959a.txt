@@ -1,9 +1,0 @@
-<source>https://alkem.io/digileefomgeving/challenges/datagedrevennplgzu-8467/collaboration/userstories-9992</source>
-<type>callout</type>
-Name: User Stories
-Description: Please enter here your user stories!
-
-As much __detail__ as possible. Also please __comment__ on the user stories already added!  Nicely :)
-References:
-
-URL: https://alkem.io/digileefomgeving/challenges/datagedrevennplgzu-8467/collaboration/userstories-9992

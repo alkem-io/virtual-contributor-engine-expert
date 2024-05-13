@@ -1,8 +1,0 @@
-<source>https://alkem.io/digileefomgeving/challenges/bredewelvaart-9562/collaboration/suggestions</source>
-<type>callout</type>
-Name: Suggesties, vragen en feedback? 
-Description: Deel ze hier:)
-
-References:
-
-URL: https://alkem.io/digileefomgeving/challenges/bredewelvaart-9562/collaboration/suggestions
