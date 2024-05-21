@@ -44,7 +44,6 @@ class RabbitMQ:
         await self.channel.declare_queue(self.queue, auto_delete=False)
 
 
-logger.info(config)
 rabbitmq = RabbitMQ(
     host=config["rabbitmq_host"],
     login=config["rabbitmq_user"],
@@ -61,8 +60,7 @@ async def query(user_id, message_body, language_code):
             r"\[@.*\d\d\)", "", message_body["question"]
         ).strip()
 
-        logger.info(
-            f"\nQuery from user {user_id}: {message_body['question']}\n")
+        logger.info(f"\nQuery from user {user_id}: {message_body['question']}\n")
 
         if user_id not in user_data:
             user_data[user_id] = {}
@@ -90,7 +88,7 @@ async def query(user_id, message_body, language_code):
                     doc["type"].replace("_", " ").lower().capitalize(),
                     doc["title"],
                 ),
-                "url": doc["source"],
+                "uri": doc["source"],
             }
             for doc in llm_result["source_documents"]
         ]
@@ -108,8 +106,7 @@ async def query(user_id, message_body, language_code):
         user_data[user_id]["chat_history"].save_context(
             {"question": message_body["question"]}, {"answer": answer.content}
         )
-        logger.debug(
-            f"new chat history {user_data[user_id]['chat_history']}\n")
+        logger.debug(f"new chat history {user_data[user_id]['chat_history']}\n")
         response = json.dumps(
             {
                 "question": message_body["question"],
@@ -151,8 +148,7 @@ async def on_request(message: aio_pika.abc.AbstractIncomingMessage):
                 f"existing task running for user id: {user_id}, waiting for it to finish first\n\n"
             )
         else:
-            logger.info(
-                f"no task running for user id: {user_id}, let's move!\n\n")
+            logger.info(f"no task running for user id: {user_id}, let's move!\n\n")
 
         # Acquire the lock for this user
         async with user_locks[user_id]:
@@ -202,8 +198,7 @@ async def process_message(message: aio_pika.abc.AbstractIncomingMessage):
                 ),
                 routing_key=message.reply_to or "",
             )
-            logger.info(
-                f"Response sent for correlation_id: {message.correlation_id}")
+            logger.info(f"Response sent for correlation_id: {message.correlation_id}")
             logger.info(f"Response sent to: {message.reply_to}")
             logger.debug(f"response: {response}")
         except (
@@ -211,8 +206,7 @@ async def process_message(message: aio_pika.abc.AbstractIncomingMessage):
             asyncio.exceptions.CancelledError,
             aiormq.exceptions.ChannelInvalidStateError,
         ) as e:
-            logger.error(
-                f"Failed to publish message due to a RabbitMQ error: {e}")
+            logger.error(f"Failed to publish message due to a RabbitMQ error: {e}")
 
 
 async def main():
