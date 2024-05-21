@@ -80,7 +80,7 @@ def _combine_documents(docs, document_separator="\n\n"):
 # so the translation could be used for embeddings retrieval
 async def query_chain(message, language, history):
 
-    knowledge_space_name = "%s-knowledge" % message["kowledgeSpaceNameID"]
+    knowledge_space_name = "%s-knowledge" % message["knowledgeSpaceNameID"]
     context_space_name = "%s-context" % message["contextSpaceNameID"]
     question = message["question"]
 
