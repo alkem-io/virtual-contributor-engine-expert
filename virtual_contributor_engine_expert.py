@@ -81,6 +81,9 @@ async def query(user_id, message_body, language_code):
             )
             answer = llm_result["answer"]
 
+        unique_sources = {
+            doc["source"]: doc for doc in llm_result["source_documents"]
+        }.values()
         # clean up the document sources to avoid sending too much information over.
         sources = [
             {
@@ -90,7 +93,7 @@ async def query(user_id, message_body, language_code):
                 ),
                 "uri": doc["source"],
             }
-            for doc in llm_result["source_documents"]
+            for doc in unique_sources
         ]
         logger.debug(f"\n\nsources: {sources}\n\n")
 
