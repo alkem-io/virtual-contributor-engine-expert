@@ -1,18 +1,15 @@
+import traceback
 import chromadb
+import json
 from chromadb.utils.embedding_functions import OpenAIEmbeddingFunction
-
 from langchain_core.prompts import (
     HumanMessagePromptTemplate,
     SystemMessagePromptTemplate,
 )
 from langchain.prompts.prompt import PromptTemplate
-from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder, PromptTemplate
+from langchain.prompts import ChatPromptTemplate, PromptTemplate
 from langchain_openai import AzureChatOpenAI
-from numpy import source
-from config import config, local_path, LOG_LEVEL, max_token_limit
-
-
-import os
+from config import config, LOG_LEVEL, max_token_limit
 from logger import setup_logger
 
 logger = setup_logger(__name__)
@@ -23,36 +20,65 @@ if LOG_LEVEL == "DEBUG":
 else:
     verbose_models = False
 
-chat_system_template = """
-You are a friendly and talkative conversational agent, tasked with answering questions based on the context provided below delimited by triple pluses.
-Use the following step-by-step instructions to respond to user inputs:
-1 - If the question is in a different language than English, translate the question to English before answering.
-2 - The text provided in the context delimited by triple pluses is retrieved from the Alkemio platform and is not part of the conversation with the user.
-3 - Provide an answer of 250 words or less that is professional, engaging, accurate and exthausive, based on the context delimited by triple pluses. \
-If the answer cannot be found within the context, write 'Hmm, I am not sure'. 
-4 - If the question is not specifically about Alkemio or if the question is not professional write 'Unfortunately, I cannot answer that question'. 
-5 - Only return the answer from step 3, do not show any code or additional information.
-6 - Answer in the language of the question.
+# another option for tep two of the answer generation
+# 2. if you can not find a meaningful answer based on the 'Knowledge' text block use 'Sorry, I do not understand the context of your message. Can you please rephrase your question?"' translated to the language used by the human message
+expert_system_template = """
+You are a computer system with JSON interface which has ONLY knowledge in a specific field. A lively community which relies on your \
+expertise to help it achieve the goal it is formed around. Below you are provided with two text blocks which are not part of your conversation with the user. \
+The one labeled 'Knowledge' and delimited by '+++' contains the chunks of documents from your knowledge base that are most relevant to the user question. You have no other knowledge of the world.
+The one labeled 'Context' and delimited by '+++' contains chunks of to communication withing the community which most relevant to the users question. \
+Each chunk is prefixed with a unique source in the format '[source:soruceIdentifier]' which does not contin actual information. You can only respond in the JSON format described below.
+
+Use the following step by step instructions to respond to user inputs:
+ I. Identify the language used by the human message and label it HUMAN_LANGUAGE
+ II. Identify the language used in the 'Knowledge' text block
+ III. Identify the language used in 'Context' text block
+ IV. Identify the tone of the 'Context' text block
+ V. Reply ONLY in JSON format with an object continaing the following keys: 
+    - answer: response to the human message generated with the followin steps:
+        1. generate a meaningful answer based ONLY on the 'Knowledge' text block and translate it to the language used by the human message
+        2. if 'Knowledge' text block does not contain information related to the question reply with 'Sorry, I do not understand the context of your message. Can you please rephrase your question?"' translated to the language used by the human message
+        2. if there isn't a meaningful answer in the 'Knowledge' text block indicate it
+        3. rephrase the answer to follow the tone of the 'Context' text block
+        4. translate the answer to the language identified in step I.
+    - source_scores: an object where the used knowledge sourceIdentifiers are used as keys and the values are how usefull were they for the asnwer as a number between 0 and 10; if the answer was not found in the 'Knowledge' all sources must have 0;
+    - human_language: the language used by the human message in ISO-2 format
+    - knowledge_language: the language used in the 'Knowledge' text block ISO-2 format
+    - context_language: the language used in the 'Context' text block ISO-2 format
+    - context_tone: the tone of the 'Context' text block
+
+
 +++
+Knowledge:
+{knowledge}
++++
+
++++
+Context:
 {context}
 +++
 """
 
-condense_question_template = """"
+expert_question = """"
 {question}
 """
 
+translator_system_template = """
+You are a translator. 
+Your target language indicated by a ISO-2 language code.
+Your target language is {target_language}.
+For any human input ignore the text contents.
+Do not reply with anything else except the original text or its translated version.
 
-condense_question_prompt = PromptTemplate.from_template(
-    condense_question_template)
+For any human input perform the following steps:
+    1. identify the language of the text provided for translation as an ISO-2 language code
+    2. if the language from step 1 is the same as the target language, return the original text
+    3. translate the text to the target language.
+"""
 
-chat_prompt = ChatPromptTemplate.from_messages(
-    [
-        ("system", chat_system_template),
-        MessagesPlaceholder(variable_name="chat_history"),
-        ("human", "{question}"),
-    ]
-)
+translator_human_template = """
+Text to be transalted: "{text}"
+"""
 
 
 llm = AzureChatOpenAI(
@@ -72,8 +98,12 @@ embed_func = OpenAIEmbeddingFunction(
 )
 
 
-def _combine_documents(docs, document_separator="\n\n"):
-    return document_separator.join(docs)
+def combine_documents(docs, document_separator="\n\n"):
+    chunks_array = []
+    for index, document in enumerate(docs["documents"][0]):
+        chunks_array.append("[source:%s] %s" % (index, document))
+
+    return document_separator.join(chunks_array)
 
 
 # how do we handle languages? not all spaces are in Dutch obviously
@@ -90,48 +120,126 @@ async def query_chain(message, language, history):
         % (question, knowledge_space_name, context_space_name)
     )
 
-    chroma_client = chromadb.HttpClient(
-        host=config["db_host"], port=config["db_port"])
-    collection = chroma_client.get_collection(
+    chroma_client = chromadb.HttpClient(host=config["db_host"], port=config["db_port"])
+
+    knowledge_collection = chroma_client.get_collection(
         knowledge_space_name, embedding_function=embed_func
     )
 
-    docs = collection.query(
+    context_collection = chroma_client.get_collection(
+        context_space_name, embedding_function=embed_func
+    )
+
+    knowledge_docs = knowledge_collection.query(
         query_texts=[question], include=["documents", "metadatas"], n_results=4
     )
 
-    logger.info(docs["metadatas"])
-    logger.info("Documents with ids [%s] selected" %
-                ",".join(list(docs["ids"][0])))
+    context_docs = context_collection.query(
+        query_texts=[question], include=["documents", "metadatas"], n_results=4
+    )
 
-    review_system_prompt = SystemMessagePromptTemplate(
+    # logger.info(knowledge_docs["metadatas"])
+    logger.info(
+        "Knowledge documents with ids [%s] selected"
+        % ",".join(list(knowledge_docs["ids"][0]))
+    )
+    logger.info(
+        "Context documents with ids [%s] selected"
+        % ",".join(list(context_docs["ids"][0]))
+    )
+
+    expert_system_prompt = SystemMessagePromptTemplate(
         prompt=PromptTemplate(
-            input_variables=["context"], template=chat_system_template
+            input_variables=["context", "knowledge"], template=expert_system_template
         )
     )
 
-    review_human_prompt = HumanMessagePromptTemplate(
-        prompt=PromptTemplate(
-            input_variables=["question"], template=condense_question_template
-        )
+    expert_human_prompt = HumanMessagePromptTemplate(
+        prompt=PromptTemplate(input_variables=["question"], template=expert_question)
     )
 
-    messages = [review_system_prompt, review_human_prompt]
+    messages = [expert_system_prompt, expert_human_prompt]
 
-    review_prompt_template = ChatPromptTemplate(
-        input_variables=["context", "question"],
+    prompt_template = ChatPromptTemplate(
+        input_variables=["context", "knowledge", "question"],
         messages=messages,
     )
 
-    review_chain = review_prompt_template | llm
+    chain = prompt_template | llm
 
-    if docs["documents"] and docs["metadatas"]:
-        result = review_chain.invoke(
+    if knowledge_docs["documents"] and knowledge_docs["metadatas"]:
+        result = chain.invoke(
             {
                 "question": question,
-                "context": _combine_documents(docs["documents"][0]),
+                "knowledge": combine_documents(knowledge_docs),
+                "context": combine_documents(context_docs),
             }
         )
-        return {"answer": result, "source_documents": docs["metadatas"][0]}
+        try:
+            json_result = json.loads(result.content)
 
-    return {"answer": "", "source_documents": []}
+            logger.info(json_result)
+
+            translator_system_prompt = SystemMessagePromptTemplate(
+                prompt=PromptTemplate(
+                    input_variables=["target_language"],
+                    template=translator_system_template,
+                )
+            )
+
+            translator_human_prompt = HumanMessagePromptTemplate(
+                prompt=PromptTemplate(
+                    input_variables=["text"], template=translator_human_template
+                )
+            )
+
+            translator_prompt = ChatPromptTemplate(
+                input_variables=["target_language", "text"],
+                messages=[translator_system_prompt, translator_human_prompt],
+            )
+
+            chain = translator_prompt | llm
+
+            translation_result = chain.invoke(
+                {
+                    "target_language": json_result["human_language"],
+                    "text": json_result["answer"],
+                }
+            )
+
+            source_scores = json_result.pop("source_scores")
+
+            json_result["original_answer"] = json_result.pop("answer")
+            json_result["answer"] = translation_result.content
+
+            # add score and URI to the sources
+            sources = [
+                dict(doc)
+                # most of this processing should be removed from here
+                | {
+                    "score": source_scores[str(index)],
+                    "uri": doc["source"],
+                    "title": "[{}] {}".format(
+                        str(doc["type"]).replace("_", " ").lower().capitalize(),
+                        doc["title"],
+                    ),
+                }
+                for index, doc in enumerate(knowledge_docs["metadatas"][0])
+            ]
+            json_result["sources"] = list(
+                {doc["source"]: doc for doc in sources}.values()
+            )
+
+            return json_result
+
+        except Exception as inst:
+            logger.error(inst)
+            logger.error(traceback.format_exc())
+
+        return {
+            "answer": result.content,
+            "original_answer": result.content,
+            "sources": knowledge_docs["metadatas"][0],
+        }
+
+    return {"answer": "", "original_answer": "", "sources": []}
