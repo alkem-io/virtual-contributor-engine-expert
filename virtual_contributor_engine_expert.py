@@ -74,54 +74,35 @@ async def query(user_id, message_body, language_code):
         logger.debug(f"\nlanguage: {user_data[user_id]['language']}\n")
 
         with get_openai_callback() as cb:
-            llm_result = await ai_adapter.query_chain(
+            result = await ai_adapter.query_chain(
                 message_body,
                 user_data[user_id]["language"],
                 user_data[user_id]["chat_history"],
             )
-            answer = llm_result["answer"]
-
-        unique_sources = {
-            doc["source"]: doc for doc in llm_result["source_documents"]
-        }.values()
-        # clean up the document sources to avoid sending too much information over.
-        sources = [
-            {
-                "title": "[{}] {}".format(
-                    doc["type"].replace("_", " ").lower().capitalize(),
-                    doc["title"],
-                ),
-                "uri": doc["source"],
-            }
-            for doc in unique_sources
-        ]
-        logger.debug(f"\n\nsources: {sources}\n\n")
 
         logger.debug(f"\nTotal Tokens: {cb.total_tokens}")
         logger.debug(f"\nPrompt Tokens: {cb.prompt_tokens}")
         logger.debug(f"\nCompletion Tokens: {cb.completion_tokens}")
         logger.debug(f"\nTotal Cost (USD): ${cb.total_cost}")
 
-        logger.debug(f"\n\nLLM result: {llm_result}\n\n")
-        logger.info(f"\n\nanswer: {answer}\n\n")
-        logger.debug(f"\n\nsources: {sources}\n\\ n")
+        logger.debug(f"\n\nLLM result: {result}\n\n")
 
         user_data[user_id]["chat_history"].save_context(
-            {"question": message_body["question"]}, {"answer": answer.content}
+            {"question": message_body["question"]},
+            {"answer": result["answer"]},
         )
         logger.debug(f"new chat history {user_data[user_id]['chat_history']}\n")
-        response = json.dumps(
-            {
-                "question": message_body["question"],
-                "answer": str(answer.content),
-                "sources": sources,
-                "prompt_tokens": cb.prompt_tokens,
-                "completion_tokens": cb.completion_tokens,
-                "total_tokens": cb.total_tokens,
-                "total_cost": cb.total_cost,
-            }
-        )
-        return response
+        response = {
+            "question": message_body["question"],
+            "prompt_tokens": cb.prompt_tokens,
+            "completion_tokens": cb.completion_tokens,
+            "total_tokens": cb.total_tokens,
+            "total_cost": cb.total_cost,
+        } | result
+
+        logger.info(response)
+
+        return json.dumps(response)
 
 
 def reset(user_id):
