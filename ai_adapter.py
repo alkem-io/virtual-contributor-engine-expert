@@ -45,6 +45,7 @@ Use the following step by step instructions to respond to user inputs:
     - human_language: the language used by the human message in ISO-2 format
     - knowledge_language: the language used in the 'Knowledge' text block ISO-2 format
     - context_language: the language used in the 'Context' text block ISO-2 format
+    - answer_language: the language used for the answer in ISO-2 format
     - context_tone: the tone of the 'Context' text block
 
 
@@ -68,7 +69,8 @@ You are a translator.
 Your target language indicated by a ISO-2 language code.
 Your target language is {target_language}.
 For any human input ignore the text contents.
-Do not reply with anything else except the original text or its translated version.
+You are allowed to reply only with the original text or its translated version.
+You are forbidden to include any comments or other extra information.
 
 For any human input perform the following steps:
     1. identify the language of the text provided for translation as an ISO-2 language code
@@ -180,38 +182,43 @@ async def query_chain(message, language, history):
 
             logger.info(json_result)
 
-            translator_system_prompt = SystemMessagePromptTemplate(
-                prompt=PromptTemplate(
-                    input_variables=["target_language"],
-                    template=translator_system_template,
+            if json_result["human_language"] != json_result["answer_language"]:
+
+                logger.info("Should be translated")
+
+                translator_system_prompt = SystemMessagePromptTemplate(
+                    prompt=PromptTemplate(
+                        input_variables=["target_language"],
+                        template=translator_system_template,
+                    )
                 )
-            )
 
-            translator_human_prompt = HumanMessagePromptTemplate(
-                prompt=PromptTemplate(
-                    input_variables=["text"], template=translator_human_template
+                translator_human_prompt = HumanMessagePromptTemplate(
+                    prompt=PromptTemplate(
+                        input_variables=["text"], template=translator_human_template
+                    )
                 )
-            )
 
-            translator_prompt = ChatPromptTemplate(
-                input_variables=["target_language", "text"],
-                messages=[translator_system_prompt, translator_human_prompt],
-            )
+                translator_prompt = ChatPromptTemplate(
+                    input_variables=["target_language", "text"],
+                    messages=[translator_system_prompt, translator_human_prompt],
+                )
 
-            chain = translator_prompt | llm
+                chain = translator_prompt | llm
 
-            translation_result = chain.invoke(
-                {
-                    "target_language": json_result["human_language"],
-                    "text": json_result["answer"],
-                }
-            )
+                translation_result = chain.invoke(
+                    {
+                        "target_language": json_result["human_language"],
+                        "text": json_result["answer"],
+                    }
+                )
+
+                json_result["original_answer"] = json_result.pop("answer")
+                json_result["answer"] = translation_result.content
+            else:
+                json_result["original_answer"] = json_result["answer"]
 
             source_scores = json_result.pop("source_scores")
-
-            json_result["original_answer"] = json_result.pop("answer")
-            json_result["answer"] = translation_result.content
-
             # add score and URI to the sources
             sources = [
                 dict(doc)
