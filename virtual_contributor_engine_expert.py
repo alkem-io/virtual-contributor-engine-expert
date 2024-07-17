@@ -11,6 +11,7 @@ import json
 from aio_pika import connect_robust
 from config import config, LOG_LEVEL
 from logger import setup_logger
+from utils import clear_tags
 
 logger = setup_logger(__name__)
 
@@ -56,9 +57,7 @@ async def query(user_id, message_body, language_code):
     async with ingestion_lock:
 
         # trim the VC tag
-        message_body["question"] = re.sub(
-            r"\[@.*\d\d\)", "", message_body["question"]
-        ).strip()
+        message_body["question"] = clear_tags(message_body["question"])
 
         logger.info(f"\nQuery from user {user_id}: {message_body['question']}\n")
 
@@ -74,11 +73,7 @@ async def query(user_id, message_body, language_code):
         logger.debug(f"\nlanguage: {user_data[user_id]['language']}\n")
 
         with get_openai_callback() as cb:
-            result = await ai_adapter.query_chain(
-                message_body,
-                user_data[user_id]["language"],
-                user_data[user_id]["chat_history"],
-            )
+            result = await ai_adapter.query_chain(message_body)
 
         logger.debug(f"\nTotal Tokens: {cb.total_tokens}")
         logger.debug(f"\nPrompt Tokens: {cb.prompt_tokens}")
@@ -115,8 +110,10 @@ async def on_request(message: aio_pika.abc.AbstractIncomingMessage):
         # Parse the message body as JSON
         body = json.loads(message.body)
 
+        logger.info(body)
+
         # Get the user ID from the message body
-        user_id = body["data"]["userId"]
+        user_id = body["data"]["userID"]
 
         logger.info(
             f"\nrequest arriving for user id: {user_id}, deciding what to do\n\n"
@@ -142,14 +139,14 @@ async def on_request(message: aio_pika.abc.AbstractIncomingMessage):
 
 async def process_message(message: aio_pika.abc.AbstractIncomingMessage):
     body = json.loads(message.body.decode())
-    user_id = body["data"].get("userId")
+    user_id = body["data"].get("userID")
 
     logger.info(body)
 
     operation = body["pattern"]["cmd"]
 
     if user_id is None:
-        response = "userId not provided"
+        response = "userID not provided"
     else:
         if operation == "query":
             if "question" in body["data"]:
