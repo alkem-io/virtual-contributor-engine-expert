@@ -7,11 +7,15 @@ config = {
     "db_host": os.getenv("VECTOR_DB_HOST"),
     "db_port": os.getenv("VECTOR_DB_PORT"),
     "llm_deployment_name": os.getenv("LLM_DEPLOYMENT_NAME"),
-    "model_temperature": os.getenv("AI_MODEL_TEMPERATURE"),
-    "embeddings_deployment_name": os.getenv("EMBEDDINGS_DEPLOYMENT_NAME"),
-    "openai_endpoint": os.getenv("AZURE_OPENAI_ENDPOINT"),
+    # openai config
     "openai_api_key": os.getenv("AZURE_OPENAI_API_KEY"),
     "openai_api_version": os.getenv("OPENAI_API_VERSION"),
+    "openai_endpoint": os.getenv("AZURE_OPENAI_ENDPOINT"),
+    # mistal config
+    "mistral_api_key": os.getenv("AZURE_MISTRAL_API_KEY"),
+    "mistral_endpoint": os.getenv("AZURE_MISTRAL_ENDPOINT"),
+    "model_temperature": os.getenv("AI_MODEL_TEMPERATURE"),
+    "embeddings_deployment_name": os.getenv("EMBEDDINGS_DEPLOYMENT_NAME"),
     "rabbitmq_host": os.getenv("RABBITMQ_HOST"),
     "rabbitmq_user": os.getenv("RABBITMQ_USER"),
     "rabbitmq_password": os.getenv("RABBITMQ_PASSWORD"),

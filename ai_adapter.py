@@ -59,25 +59,25 @@ async def query_chain(message):
     knowledge_collection = chroma_client.get_collection(
         knowledge_space_name, embedding_function=embed_func
     )
-    context_collection = chroma_client.get_collection(
-        context_space_name, embedding_function=embed_func
-    )
+
     knowledge_docs = knowledge_collection.query(
         query_texts=[question], include=["documents", "metadatas"], n_results=4
     )
-    context_docs = context_collection.query(
-        query_texts=[question], include=["documents", "metadatas"], n_results=4
-    )
-
-    # logger.info(knowledge_docs["metadatas"])
     logger.info(
         "Knowledge documents with ids [%s] selected"
         % ",".join(list(knowledge_docs["ids"][0]))
     )
-    logger.info(
-        "Context documents with ids [%s] selected"
-        % ",".join(list(context_docs["ids"][0]))
-    )
+    # context_collection = chroma_client.get_collection(
+    #     context_space_name, embedding_function=embed_func
+    # )
+    # # logger.info(knowledge_docs["metadatas"])
+    # context_docs = context_collection.query(
+    #     query_texts=[question], include=["documents", "metadatas"], n_results=4
+    # )
+    # logger.info(
+    #     "Context documents with ids [%s] selected"
+    #     % ",".join(list(context_docs["ids"][0]))
+    # )
 
     expert_prompt = ChatPromptTemplate.from_messages(
         [

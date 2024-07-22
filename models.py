@@ -1,6 +1,8 @@
 from langchain_openai import AzureChatOpenAI, AzureOpenAI
 from chromadb.utils.embedding_functions import OpenAIEmbeddingFunction
 from config import config, LOG_LEVEL, max_token_limit
+from langchain_mistralai.chat_models import ChatMistralAI
+
 
 # verbose output for LLMs
 if LOG_LEVEL == "DEBUG":
@@ -9,18 +11,22 @@ else:
     verbose_models = False
 
 
-chat_llm = AzureChatOpenAI(
-    azure_deployment=config["llm_deployment_name"],
-    temperature=float(config["model_temperature"]),
-    max_tokens=max_token_limit,
-    verbose=verbose_models,
+chat_llm = ChatMistralAI(
+    endpoint=config["mistral_endpoint"],
+    api_key=config["mistral_api_key"],
+    # azure_deployment=config["llm_deployment_name"],
+    # temperature=float(config["model_temperature"]),
+    # max_tokens=max_token_limit,
+    # verbose=verbose_models,
 )
 
-condenser_llm = AzureChatOpenAI(
-    azure_deployment=config["llm_deployment_name"],
-    temperature=0,
-    max_tokens=max_token_limit,
-    verbose=verbose_models,
+condenser_llm = ChatMistralAI(
+    endpoint=config["mistral_endpoint"],
+    api_key=config["mistral_api_key"],
+    # azure_deployment=config["llm_deployment_name"],
+    # temperature=0,
+    # max_tokens=max_token_limit,
+    # verbose=verbose_models,
 )
 
 embed_func = OpenAIEmbeddingFunction(
