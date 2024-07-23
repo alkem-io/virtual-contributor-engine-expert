@@ -9,6 +9,7 @@ from prompts import (
     expert_system_prompt,
     bok_system_prompt,
     response_system_prompt,
+    limits_system_prompt,
     translator_system_prompt,
     condenser_system_prompt,
 )
@@ -84,6 +85,7 @@ async def query_chain(message):
             ("system", expert_system_prompt),
             ("system", bok_system_prompt),
             ("system", response_system_prompt),
+            ("system", limits_system_prompt),
         ]
     )
     expert_prompt += history_as_messages(history)
