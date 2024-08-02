@@ -15,8 +15,6 @@ from models import chat_llm, condenser_llm
 
 logger = setup_logger(__name__)
 
-braek = 10
-
 
 async def invoke(message):
     try:
