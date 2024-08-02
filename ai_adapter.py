@@ -1,10 +1,8 @@
-import traceback
-import chromadb
 import json
 from config import config
 from langchain.prompts import ChatPromptTemplate
 from logger import setup_logger
-from utils import history_as_messages, combine_documents, load_context, load_knowledge
+from utils import history_as_messages, combine_documents, load_knowledge
 from prompts import (
     expert_system_prompt,
     bok_system_prompt,
@@ -13,7 +11,7 @@ from prompts import (
     translator_system_prompt,
     condenser_system_prompt,
 )
-from models import chat_llm, condenser_llm, embed_func
+from models import chat_llm, condenser_llm
 
 logger = setup_logger(__name__)
 

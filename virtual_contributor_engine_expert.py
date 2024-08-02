@@ -1,4 +1,3 @@
-import re
 from langchain.callbacks import get_openai_callback
 from langchain.memory import ConversationBufferWindowMemory
 import json

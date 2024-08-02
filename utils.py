@@ -1,7 +1,6 @@
 import re
 from db_client import DbClient
-from config import config
-from models import chat_llm, condenser_llm, embed_func
+from models import embed_func
 from logger import setup_logger
 
 logger = setup_logger(__name__)
