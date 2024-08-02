@@ -55,8 +55,7 @@ async def query_chain(message):
             {"question": question, "chat_history": history_as_messages(history)}
         )
         logger.info(
-            "Original question is: '%s'; Rephrased question is: '%s"
-            % (question, result.content)
+            f"Original question is: '{question}'; Rephrased question is: '{result.content}"
         )
         question = result.content
     else:
@@ -94,7 +93,7 @@ async def query_chain(message):
             }
         )
         json_result = {}
-        logger.info("Expert chain invoked. Result is `%s`" % str(result.content))
+        logger.info(f"Expert chain invoked. Result is `{str(result.content)}`")
         try:
             # try to parse a valid JSON response from the main expert engine
             json_result = json.loads(str(result.content))
@@ -118,8 +117,7 @@ async def query_chain(message):
         ):
             target_lang = json_result["human_language"]
             logger.info(
-                "Creating translsator chaing. Human language is %s; answer language is %s"
-                % (target_lang, json_result["answer_language"])
+                f"Creating translsator chaing. Human language is {target_lang}; answer language is {json_result['answer_language']}"
             )
             translator_prompt = ChatPromptTemplate.from_messages(
                 [("system", translator_system_prompt), ("human", "{text}")]
@@ -134,7 +132,7 @@ async def query_chain(message):
             )
             json_result["original_answer"] = json_result.pop("answer")
             json_result["answer"] = translation_result.content
-            logger.info("Translation completed. Result is: %s" % json_result["answer"])
+            logger.info(f"Translation completed. Result is: {json_result['answer']}")
         else:
             logger.info("Translation not needed or impossible.")
             json_result["original_answer"] = json_result["answer"]
