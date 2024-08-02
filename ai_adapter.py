@@ -15,11 +15,12 @@ from models import chat_llm, condenser_llm
 
 logger = setup_logger(__name__)
 
+braek = 10
+
 
 async def invoke(message):
     try:
-        result = await query_chain(message)
-        return result
+        return query_chain(message)
     except Exception as inst:
         logger.exception(inst)
         return {
@@ -79,7 +80,7 @@ async def query_chain(message):
     logger.info("History added.")
     logger.info("Adding last question...")
     expert_prompt.append(("human", "{question}"))
-    logger.info("Last question added added")
+    logger.info("Last question added.")
     expert_chain = expert_prompt | chat_llm
 
     if knowledge_docs["ids"] and knowledge_docs["metadatas"]:
@@ -97,7 +98,7 @@ async def query_chain(message):
             json_result = json.loads(str(result.content))
             logger.info("Engine chain returned valid JSON.")
         except:
-            # not an actual error; beha viours is semi-expected
+            # not an actual error; behaviour is semi-expected
             logger.info(
                 "Engine chain returned invalid JSON. Falling back to default result schema."
             )
@@ -115,7 +116,7 @@ async def query_chain(message):
         ):
             target_lang = json_result["human_language"]
             logger.info(
-                f"Creating translsator chaing. Human language is {target_lang}; answer language is {json_result['answer_language']}"
+                f"Creating translsator chain. Human language is {target_lang}; answer language is {json_result['answer_language']}"
             )
             translator_prompt = ChatPromptTemplate.from_messages(
                 [("system", translator_system_prompt), ("human", "{text}")]
