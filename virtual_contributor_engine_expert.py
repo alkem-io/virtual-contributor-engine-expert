@@ -73,7 +73,7 @@ async def query(user_id, message_body, language_code):
         logger.debug(f"\nlanguage: {user_data[user_id]['language']}\n")
 
         with get_openai_callback() as cb:
-            result = await ai_adapter.query_chain(message_body)
+            result = await ai_adapter.invoke(message_body)
 
         logger.debug(f"\nTotal Tokens: {cb.total_tokens}")
         logger.debug(f"\nPrompt Tokens: {cb.prompt_tokens}")

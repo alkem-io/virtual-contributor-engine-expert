@@ -4,7 +4,7 @@ import json
 from config import config
 from langchain.prompts import ChatPromptTemplate
 from logger import setup_logger
-from utils import history_as_messages, combine_documents
+from utils import history_as_messages, combine_documents, load_context, load_knowledge
 from prompts import (
     expert_system_prompt,
     bok_system_prompt,
@@ -16,6 +16,19 @@ from prompts import (
 from models import chat_llm, condenser_llm, embed_func
 
 logger = setup_logger(__name__)
+
+
+async def invoke(message):
+    try:
+        result = await query_chain(message)
+        return result
+    except Exception as inst:
+        logger.exception(inst)
+        return {
+            "answer": "Alkemio's VirtualContributor service is currently unavailable.",
+            "original_answer": "Alkemio's VirtualContributor service is currently unavailable.",
+            "sources": [],
+        }
 
 
 # how do we handle languages? not all spaces are in Dutch obviously
@@ -46,40 +59,15 @@ async def query_chain(message):
             % (question, result.content)
         )
         question = result.content
+    else:
+        logger.info("No history to handle, initial interaction")
 
-    knowledge_space_name = "%s-knowledge" % message["bodyOfKnowledgeID"]
-    context_space_name = "%s-context" % message["contextID"]
+    knowledge_docs = load_knowledge(question, message["bodyOfKnowledgeID"])
 
-    logger.info(
-        "Query chaing invoked for question: %s; spaces are: %s and %s"
-        % (question, knowledge_space_name, context_space_name)
-    )
+    # TODO bring back the context space usage
+    # context_docs = load_context(question, message["contextID"])
 
-    # try to rework those as retreivers
-    chroma_client = chromadb.HttpClient(host=config["db_host"], port=config["db_port"])
-    knowledge_collection = chroma_client.get_collection(
-        knowledge_space_name, embedding_function=embed_func
-    )
-    context_collection = chroma_client.get_collection(
-        context_space_name, embedding_function=embed_func
-    )
-    knowledge_docs = knowledge_collection.query(
-        query_texts=[question], include=["documents", "metadatas"], n_results=4
-    )
-    context_docs = context_collection.query(
-        query_texts=[question], include=["documents", "metadatas"], n_results=4
-    )
-
-    # logger.info(knowledge_docs["metadatas"])
-    logger.info(
-        "Knowledge documents with ids [%s] selected"
-        % ",".join(list(knowledge_docs["ids"][0]))
-    )
-    logger.info(
-        "Context documents with ids [%s] selected"
-        % ",".join(list(context_docs["ids"][0]))
-    )
-
+    logger.info("Creating expert prompt. Applying system messages...")
     expert_prompt = ChatPromptTemplate.from_messages(
         [
             ("system", expert_system_prompt),
@@ -88,13 +76,17 @@ async def query_chain(message):
             ("system", limits_system_prompt),
         ]
     )
+    logger.info("System messages applied.")
+    logger.info("Adding history...")
     expert_prompt += history_as_messages(history)
+    logger.info("History added.")
+    logger.info("Adding last question...")
     expert_prompt.append(("human", "{question}"))
-
+    logger.info("Last question added added")
     expert_chain = expert_prompt | chat_llm
 
-    if knowledge_docs["documents"] and knowledge_docs["metadatas"]:
-
+    if knowledge_docs["ids"] and knowledge_docs["metadatas"]:
+        logger.info("Invoking expert chain...")
         result = expert_chain.invoke(
             {
                 "question": question,
@@ -102,13 +94,16 @@ async def query_chain(message):
             }
         )
         json_result = {}
+        logger.info("Expert chain invoked. Result is `%s`" % str(result.content))
         try:
-            json_result = json.loads(result.content)
             # try to parse a valid JSON response from the main expert engine
-        except Exception as inst:
-            # if not log the error and use the result of the engine as plain string
-            logger.error(inst)
-            logger.error(traceback.format_exc())
+            json_result = json.loads(str(result.content))
+            logger.info("Engine chain returned valid JSON.")
+        except:
+            # not an actual error; beha viours is semi-expected
+            logger.info(
+                "Engine chain returned invalid JSON. Falling back to default result schema."
+            )
             json_result = {
                 "answer": result.content,
                 "original_answer": result.content,
@@ -121,21 +116,27 @@ async def query_chain(message):
             and "answer_language" in json_result
             and json_result["human_language"] != json_result["answer_language"]
         ):
+            target_lang = json_result["human_language"]
+            logger.info(
+                "Creating translsator chaing. Human language is %s; answer language is %s"
+                % (target_lang, json_result["answer_language"])
+            )
             translator_prompt = ChatPromptTemplate.from_messages(
                 [("system", translator_system_prompt), ("human", "{text}")]
             )
-
             translator_chain = translator_prompt | chat_llm
 
             translation_result = translator_chain.invoke(
                 {
-                    "target_language": json_result["human_language"],
+                    "target_language": target_lang,
                     "text": json_result["answer"],
                 }
             )
             json_result["original_answer"] = json_result.pop("answer")
             json_result["answer"] = translation_result.content
+            logger.info("Translation completed. Result is: %s" % json_result["answer"])
         else:
+            logger.info("Translation not needed or impossible.")
             json_result["original_answer"] = json_result["answer"]
 
         source_scores = json_result.pop("source_scores")
