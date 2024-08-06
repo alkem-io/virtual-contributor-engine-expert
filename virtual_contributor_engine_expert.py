@@ -1,4 +1,3 @@
-from langchain.callbacks import get_openai_callback
 from langchain.memory import ConversationBufferWindowMemory
 import json
 import ai_adapter
@@ -72,12 +71,6 @@ async def query(user_id, message_body, language_code):
         logger.debug(f"language: {user_data[user_id]['language']}")
 
         result = await ai_adapter.invoke(message_body)
-
-        # logger.debug(f"\nTotal Tokens: {cb.total_tokens}")
-        # logger.debug(f"\nPrompt Tokens: {cb.prompt_tokens}")
-        # logger.debug(f"\nCompletion Tokens: {cb.completion_tokens}")
-        # logger.debug(f"\nTotal Cost (USD): ${cb.total_cost}")
-
         logger.debug(f"LLM result: {result}")
 
         user_data[user_id]["chat_history"].save_context(
@@ -87,10 +80,6 @@ async def query(user_id, message_body, language_code):
         logger.debug(f"new chat history {user_data[user_id]['chat_history']}")
         response = {
             "question": message_body["question"],
-            # "prompt_tokens": cb.prompt_tokens,
-            # "completion_tokens": cb.completion_tokens,
-            # "total_tokens": cb.total_tokens,
-            # "total_cost": cb.total_cost,
         } | result
 
         logger.info(response)
