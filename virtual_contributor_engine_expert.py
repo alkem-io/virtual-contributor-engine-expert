@@ -1,4 +1,3 @@
-import re
 from langchain.callbacks import get_openai_callback
 from langchain.memory import ConversationBufferWindowMemory
 import json
@@ -59,7 +58,7 @@ async def query(user_id, message_body, language_code):
         # trim the VC tag
         message_body["question"] = clear_tags(message_body["question"])
 
-        logger.info(f"\nQuery from user {user_id}: {message_body['question']}\n")
+        logger.info(f"Query from user {user_id}: {message_body['question']}")
 
         if user_id not in user_data:
             user_data[user_id] = {}
@@ -70,23 +69,23 @@ async def query(user_id, message_body, language_code):
 
         user_data[user_id]["language"] = language_code
 
-        logger.debug(f"\nlanguage: {user_data[user_id]['language']}\n")
+        logger.debug(f"language: {user_data[user_id]['language']}")
 
         with get_openai_callback() as cb:
-            result = await ai_adapter.query_chain(message_body)
+            result = await ai_adapter.invoke(message_body)
 
-        logger.debug(f"\nTotal Tokens: {cb.total_tokens}")
-        logger.debug(f"\nPrompt Tokens: {cb.prompt_tokens}")
-        logger.debug(f"\nCompletion Tokens: {cb.completion_tokens}")
-        logger.debug(f"\nTotal Cost (USD): ${cb.total_cost}")
+        logger.debug(f"Total Tokens: {cb.total_tokens}")
+        logger.debug(f"Prompt Tokens: {cb.prompt_tokens}")
+        logger.debug(f"Completion Tokens: {cb.completion_tokens}")
+        logger.debug(f"Total Cost (USD): ${cb.total_cost}")
 
-        logger.debug(f"\n\nLLM result: {result}\n\n")
+        logger.debug(f"LLM result: {result}")
 
         user_data[user_id]["chat_history"].save_context(
             {"question": message_body["question"]},
             {"answer": result["answer"]},
         )
-        logger.debug(f"new chat history {user_data[user_id]['chat_history']}\n")
+        logger.debug(f"new chat history {user_data[user_id]['chat_history']}")
         response = {
             "question": message_body["question"],
             "prompt_tokens": cb.prompt_tokens,
@@ -110,14 +109,10 @@ async def on_request(message: aio_pika.abc.AbstractIncomingMessage):
         # Parse the message body as JSON
         body = json.loads(message.body)
 
-        logger.info(body)
-
         # Get the user ID from the message body
         user_id = body["data"]["userID"]
 
-        logger.info(
-            f"\nrequest arriving for user id: {user_id}, deciding what to do\n\n"
-        )
+        logger.info(f"request arriving for user id: {user_id}, deciding what to do")
 
         # If there's no lock for this user, create one
         if user_id not in user_locks:
@@ -126,10 +121,10 @@ async def on_request(message: aio_pika.abc.AbstractIncomingMessage):
         # Check if the lock is locked
         if user_locks[user_id].locked():
             logger.info(
-                f"existing task running for user id: {user_id}, waiting for it to finish first\n\n"
+                f"existing task running for user id: {user_id}, waiting for it to finish first"
             )
         else:
-            logger.info(f"no task running for user id: {user_id}, let's move!\n\n")
+            logger.info(f"no task running for user id: {user_id}, let's move!")
 
         # Acquire the lock for this user
         async with user_locks[user_id]:
@@ -141,7 +136,7 @@ async def process_message(message: aio_pika.abc.AbstractIncomingMessage):
     body = json.loads(message.body.decode())
     user_id = body["data"].get("userID")
 
-    logger.info(body)
+    logger.debug(body)
 
     operation = body["pattern"]["cmd"]
 
@@ -151,7 +146,7 @@ async def process_message(message: aio_pika.abc.AbstractIncomingMessage):
         if operation == "query":
             if "question" in body["data"]:
                 logger.info(
-                    f"query time for user id: {user_id}, let's call the query() function!\n\n"
+                    f"query time for user id: {user_id}, let's call the query() function!"
                 )
                 response = await query(user_id, body["data"], "English")
             else:
