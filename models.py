@@ -14,19 +14,11 @@ else:
 chat_llm = ChatMistralAI(
     endpoint=config["mistral_endpoint"],
     api_key=config["mistral_api_key"],
-    # azure_deployment=config["llm_deployment_name"],
-    # temperature=float(config["model_temperature"]),
-    # max_tokens=max_token_limit,
-    # verbose=verbose_models,
 )
 
 condenser_llm = ChatMistralAI(
     endpoint=config["mistral_endpoint"],
     api_key=config["mistral_api_key"],
-    # azure_deployment=config["llm_deployment_name"],
-    # temperature=0,
-    # max_tokens=max_token_limit,
-    # verbose=verbose_models,
 )
 
 embed_func = OpenAIEmbeddingFunction(

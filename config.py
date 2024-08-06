@@ -14,6 +14,7 @@ config = {
     # mistal config
     "mistral_api_key": os.getenv("AZURE_MISTRAL_API_KEY"),
     "mistral_endpoint": os.getenv("AZURE_MISTRAL_ENDPOINT"),
+    # general config
     "model_temperature": os.getenv("AI_MODEL_TEMPERATURE"),
     "embeddings_deployment_name": os.getenv("EMBEDDINGS_DEPLOYMENT_NAME"),
     "rabbitmq_host": os.getenv("RABBITMQ_HOST"),

@@ -1,20 +1,33 @@
-import traceback
-import chromadb
+import re
 import json
 from config import config
 from langchain.prompts import ChatPromptTemplate
 from logger import setup_logger
-from utils import history_as_messages, combine_documents
+from utils import history_as_messages, combine_documents, load_knowledge
 from prompts import (
     expert_system_prompt,
     bok_system_prompt,
     response_system_prompt,
+    limits_system_prompt,
     translator_system_prompt,
     condenser_system_prompt,
 )
-from models import chat_llm, condenser_llm, embed_func
+from models import chat_llm, condenser_llm
 
 logger = setup_logger(__name__)
+
+
+async def invoke(message):
+    try:
+        # important to await the result before returning
+        return await query_chain(message)
+    except Exception as inst:
+        logger.exception(inst)
+        return {
+            "answer": "Alkemio's VirtualContributor service is currently unavailable.",
+            "original_answer": "Alkemio's VirtualContributor service is currently unavailable.",
+            "sources": [],
+        }
 
 
 # how do we handle languages? not all spaces are in Dutch obviously
@@ -41,58 +54,37 @@ async def query_chain(message):
             {"question": question, "chat_history": history_as_messages(history)}
         )
         logger.info(
-            "Original question is: '%s'; Rephrased question is: '%s"
-            % (question, result.content)
+            f"Original question is: '{question}'; Rephrased question is: '{result.content}"
         )
         question = result.content
+    else:
+        logger.info("No history to handle, initial interaction")
 
-    knowledge_space_name = "%s-knowledge" % message["bodyOfKnowledgeID"]
-    context_space_name = "%s-context" % message["contextID"]
+    knowledge_docs = load_knowledge(question, message["bodyOfKnowledgeID"])
 
-    logger.info(
-        "Query chaing invoked for question: %s; spaces are: %s and %s"
-        % (question, knowledge_space_name, context_space_name)
-    )
+    # TODO bring back the context space usage
+    # context_docs = load_context(question, message["contextID"])
 
-    # try to rework those as retreivers
-    chroma_client = chromadb.HttpClient(host=config["db_host"], port=config["db_port"])
-    knowledge_collection = chroma_client.get_collection(
-        knowledge_space_name, embedding_function=embed_func
-    )
-
-    knowledge_docs = knowledge_collection.query(
-        query_texts=[question], include=["documents", "metadatas"], n_results=4
-    )
-    logger.info(
-        "Knowledge documents with ids [%s] selected"
-        % ",".join(list(knowledge_docs["ids"][0]))
-    )
-    # context_collection = chroma_client.get_collection(
-    #     context_space_name, embedding_function=embed_func
-    # )
-    # # logger.info(knowledge_docs["metadatas"])
-    # context_docs = context_collection.query(
-    #     query_texts=[question], include=["documents", "metadatas"], n_results=4
-    # )
-    # logger.info(
-    #     "Context documents with ids [%s] selected"
-    #     % ",".join(list(context_docs["ids"][0]))
-    # )
-
+    logger.info("Creating expert prompt. Applying system messages...")
     expert_prompt = ChatPromptTemplate.from_messages(
         [
             ("system", expert_system_prompt),
             ("system", bok_system_prompt),
             ("system", response_system_prompt),
+            ("system", limits_system_prompt),
         ]
     )
+    logger.info("System messages applied.")
+    logger.info("Adding history...")
     expert_prompt += history_as_messages(history)
+    logger.info("History added.")
+    logger.info("Adding last question...")
     expert_prompt.append(("human", "{question}"))
-
+    logger.info("Last question added.")
     expert_chain = expert_prompt | chat_llm
 
-    if knowledge_docs["documents"] and knowledge_docs["metadatas"]:
-
+    if knowledge_docs["ids"] and knowledge_docs["metadatas"]:
+        logger.info("Invoking expert chain...")
         result = expert_chain.invoke(
             {
                 "question": question,
@@ -100,13 +92,16 @@ async def query_chain(message):
             }
         )
         json_result = {}
+        logger.info(f"Expert chain invoked. Result is `{str(result.content)}`")
         try:
-            json_result = json.loads(result.content)
             # try to parse a valid JSON response from the main expert engine
-        except Exception as inst:
-            # if not log the error and use the result of the engine as plain string
-            logger.error(inst)
-            logger.error(traceback.format_exc())
+            json_result = json.loads(str(result.content))
+            logger.info("Engine chain returned valid JSON.")
+        except:
+            # not an actual error; behaviour is semi-expected
+            logger.info(
+                "Engine chain returned invalid JSON. Falling back to default result schema."
+            )
             json_result = {
                 "answer": result.content,
                 "original_answer": result.content,
@@ -119,39 +114,54 @@ async def query_chain(message):
             and "answer_language" in json_result
             and json_result["human_language"] != json_result["answer_language"]
         ):
+            target_lang = json_result["human_language"]
+            logger.info(
+                f"Creating translsator chain. Human language is {target_lang}; answer language is {json_result['answer_language']}"
+            )
             translator_prompt = ChatPromptTemplate.from_messages(
                 [("system", translator_system_prompt), ("human", "{text}")]
             )
-
             translator_chain = translator_prompt | chat_llm
 
             translation_result = translator_chain.invoke(
                 {
-                    "target_language": json_result["human_language"],
+                    "target_language": target_lang,
                     "text": json_result["answer"],
                 }
             )
             json_result["original_answer"] = json_result.pop("answer")
             json_result["answer"] = translation_result.content
+            logger.info(f"Translation completed. Result is: {json_result['answer']}")
         else:
+            logger.info("Translation not needed or impossible.")
             json_result["original_answer"] = json_result["answer"]
 
-        source_scores = json_result.pop("source_scores")
+        source_scores = {}
+        for source_id, score in json_result.pop("source_scores").items():
+            # occasionally the source score keys are returned as 'source:0' and not '0'
+            # the processing below will extract the index in both cases
+            match = re.search(r"\d+", source_id)
+            if match:
+                source_id = match.group(0)
+            source_scores[source_id] = score
+
         if len(source_scores) > 0:
             # add score and URI to the sources
-            sources = [
-                dict(doc)
-                # most of this processing should be removed from here
-                | {
-                    "score": source_scores[str(index)],
-                    "uri": doc["source"],
-                    "title": "[{}] {}".format(
-                        str(doc["type"]).replace("_", " ").lower().capitalize(),
-                        doc["title"],
-                    ),
-                }
-                for index, doc in enumerate(knowledge_docs["metadatas"][0])
-            ]
+            sources = []
+
+            for index, doc in enumerate(knowledge_docs["metadatas"][0]):
+                if str(index) in source_scores and source_scores[str(index)] > 0:
+                    sources.append(
+                        dict(doc)
+                        | {
+                            "score": source_scores[str(index)],
+                            "uri": doc["source"],
+                            "title": "[{}] {}".format(
+                                str(doc["type"]).replace("_", " ").lower().capitalize(),
+                                doc["title"],
+                            ),
+                        }
+                    )
             json_result["sources"] = list(
                 {doc["source"]: doc for doc in sources}.values()
             )
