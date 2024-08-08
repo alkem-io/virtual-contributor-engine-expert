@@ -1,3 +1,4 @@
+import re
 import json
 from config import config
 from langchain.prompts import ChatPromptTemplate
@@ -18,7 +19,8 @@ logger = setup_logger(__name__)
 
 async def invoke(message):
     try:
-        return query_chain(message)
+        # important to await the result before returning
+        return await query_chain(message)
     except Exception as inst:
         logger.exception(inst)
         return {
@@ -134,22 +136,32 @@ async def query_chain(message):
             logger.info("Translation not needed or impossible.")
             json_result["original_answer"] = json_result["answer"]
 
-        source_scores = json_result.pop("source_scores")
+        source_scores = {}
+        for source_id, score in json_result.pop("source_scores").items():
+            # occasionally the source score keys are returned as 'source:0' and not '0'
+            # the processing below will extract the index in both cases
+            match = re.search(r"\d+", source_id)
+            if match:
+                source_id = match.group(0)
+            source_scores[source_id] = score
+
         if len(source_scores) > 0:
             # add score and URI to the sources
-            sources = [
-                dict(doc)
-                # most of this processing should be removed from here
-                | {
-                    "score": source_scores[str(index)],
-                    "uri": doc["source"],
-                    "title": "[{}] {}".format(
-                        str(doc["type"]).replace("_", " ").lower().capitalize(),
-                        doc["title"],
-                    ),
-                }
-                for index, doc in enumerate(knowledge_docs["metadatas"][0])
-            ]
+            sources = []
+
+            for index, doc in enumerate(knowledge_docs["metadatas"][0]):
+                if str(index) in source_scores and source_scores[str(index)] > 0:
+                    sources.append(
+                        dict(doc)
+                        | {
+                            "score": source_scores[str(index)],
+                            "uri": doc["source"],
+                            "title": "[{}] {}".format(
+                                str(doc["type"]).replace("_", " ").lower().capitalize(),
+                                doc["title"],
+                            ),
+                        }
+                    )
             json_result["sources"] = list(
                 {doc["source"]: doc for doc in sources}.values()
             )

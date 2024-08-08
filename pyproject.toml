@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "virtual-contributor-engine-expert"
-version = "0.6.0"
+version = "0.7.0"
 description = "Alkemio Generative AI Virtul Persona"
 authors = ["Alkemio BV <info@alkem.io>"]
 license = "EUPL-1.2"
@@ -17,9 +17,9 @@ load-dotenv = "^0.1.0"
 async-timeout = "^4.0.3"
 aio-pika = "^9.3.1"
 aiormq = "^6.7.7"
-langchain-openai = "^0.1.16"
 chromadb-client = "^0.4.25.dev0"
 langgraph = "^0.1.8"
+langchain-mistralai = "^0.1.10"
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "^6.1.0"
