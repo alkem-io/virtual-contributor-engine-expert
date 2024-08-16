@@ -3,9 +3,15 @@ import json
 from config import config
 from langchain.prompts import ChatPromptTemplate
 from logger import setup_logger
-from utils import history_as_messages, combine_documents, load_knowledge
+from utils import (
+    history_as_text,
+    history_as_messages,
+    combine_documents,
+    load_knowledge,
+)
 from prompts import (
     expert_system_prompt,
+    description_system_prompt,
     bok_system_prompt,
     response_system_prompt,
     limits_system_prompt,
@@ -18,14 +24,17 @@ logger = setup_logger(__name__)
 
 
 async def invoke(message):
+    logger.info(message)
     try:
         # important to await the result before returning
         return await query_chain(message)
     except Exception as inst:
         logger.exception(inst)
+        answer = f"{message['displayName']} - the Alkemio's VirtualContributor is currently unavailable."
+
         return {
-            "answer": "Alkemio's VirtualContributor service is currently unavailable.",
-            "original_answer": "Alkemio's VirtualContributor service is currently unavailable.",
+            "answer": answer,
+            "original_answer": answer,
             "sources": [],
         }
 
@@ -45,16 +54,16 @@ async def query_chain(message):
     # - Maxima is the Queen of The Netherlands
     # - born? =======> rephrased to: tell me about the birth of Queen Máxima of the Netherlands
     if len(history) > 0:
-        logger.info("We have history. Let's rephrase.")
+        logger.info(f"We have history. Let's rephrase. Length is: {len(history)}.")
         condenser_messages = [("system", condenser_system_prompt)]
         condenser_promt = ChatPromptTemplate.from_messages(condenser_messages)
         condenser_chain = condenser_promt | condenser_llm
 
         result = condenser_chain.invoke(
-            {"question": question, "chat_history": history_as_messages(history)}
+            {"question": question, "chat_history": history_as_text(history)}
         )
         logger.info(
-            f"Original question is: '{question}'; Rephrased question is: '{result.content}"
+            f"Original question is: '{question}'; Rephrased question is: '{result.content}'"
         )
         question = result.content
     else:
@@ -74,6 +83,9 @@ async def query_chain(message):
             ("system", limits_system_prompt),
         ]
     )
+    if message["description"]:
+        expert_prompt.append(("system", description_system_prompt))
+
     logger.info("System messages applied.")
     logger.info("Adding history...")
     expert_prompt += history_as_messages(history)
@@ -81,6 +93,7 @@ async def query_chain(message):
     logger.info("Adding last question...")
     expert_prompt.append(("human", "{question}"))
     logger.info("Last question added.")
+
     expert_chain = expert_prompt | chat_llm
 
     if knowledge_docs["ids"] and knowledge_docs["metadatas"]:
@@ -89,6 +102,8 @@ async def query_chain(message):
             {
                 "question": question,
                 "knowledge": combine_documents(knowledge_docs),
+                "vc_name": message["displayName"],
+                "description": message["description"],
             }
         )
         json_result = {}

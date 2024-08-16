@@ -7,17 +7,27 @@ logger = setup_logger(__name__)
 
 
 def clear_tags(message):
-    return re.sub(r"-? ?\[@?.*\]\(.*?\)", "", message).strip()
+    return re.sub(r"(-? ?\[@?.*\]\(.*?\))|}|{", "", message).strip()
 
 
-def entry_as_message(entry):
+def entry_as_string(entry):
     if entry["role"] == "human":
         return f"Human: {clear_tags(entry['content'])}"
     return f"Assistant: {clear_tags(entry['content'])}"
 
 
+def entry_as_message(entry):
+    if entry["role"] == "human":
+        return ("human", clear_tags(entry["content"]))
+    return ("assistant", clear_tags(entry["content"]))
+
+
+def history_as_text(history):
+    return "\n".join(list(map(entry_as_string, history)))
+
+
 def history_as_messages(history):
-    return "\n".join(list(map(entry_as_message, history)))
+    return list(map(entry_as_message, history))
 
 
 def log_docs(docs, purpose):
