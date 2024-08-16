@@ -50,7 +50,7 @@ jobs:
       - uses: Azure/k8s-deploy@v5.0.0
         with:
           manifests: |
-            manifests/25-genai-deployment-dev.yaml
+            manifests/25-virtual-contributor-engine-expert-deployment-dev.yml
           images: |
             ${{ secrets.REGISTRY_LOGIN_SERVER }}/alkemio-virtual-contributor-engine-expert:${{ github.sha }}
           imagepullsecrets: |
