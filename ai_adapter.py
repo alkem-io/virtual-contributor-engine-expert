@@ -1,10 +1,17 @@
+import re
 import json
 from config import config
 from langchain.prompts import ChatPromptTemplate
 from logger import setup_logger
-from utils import history_as_messages, combine_documents, load_knowledge
+from utils import (
+    history_as_text,
+    history_as_messages,
+    combine_documents,
+    load_knowledge,
+)
 from prompts import (
     expert_system_prompt,
+    description_system_prompt,
     bok_system_prompt,
     response_system_prompt,
     limits_system_prompt,
@@ -17,13 +24,17 @@ logger = setup_logger(__name__)
 
 
 async def invoke(message):
+    logger.info(message)
     try:
-        return query_chain(message)
+        # important to await the result before returning
+        return await query_chain(message)
     except Exception as inst:
         logger.exception(inst)
+        answer = f"{message['displayName']} - the Alkemio's VirtualContributor is currently unavailable."
+
         return {
-            "answer": "Alkemio's VirtualContributor service is currently unavailable.",
-            "original_answer": "Alkemio's VirtualContributor service is currently unavailable.",
+            "answer": answer,
+            "original_answer": answer,
             "sources": [],
         }
 
@@ -43,16 +54,16 @@ async def query_chain(message):
     # - Maxima is the Queen of The Netherlands
     # - born? =======> rephrased to: tell me about the birth of Queen Máxima of the Netherlands
     if len(history) > 0:
-        logger.info("We have history. Let's rephrase.")
+        logger.info(f"We have history. Let's rephrase. Length is: {len(history)}.")
         condenser_messages = [("system", condenser_system_prompt)]
         condenser_promt = ChatPromptTemplate.from_messages(condenser_messages)
         condenser_chain = condenser_promt | condenser_llm
 
         result = condenser_chain.invoke(
-            {"question": question, "chat_history": history_as_messages(history)}
+            {"question": question, "chat_history": history_as_text(history)}
         )
         logger.info(
-            f"Original question is: '{question}'; Rephrased question is: '{result.content}"
+            f"Original question is: '{question}'; Rephrased question is: '{result.content}'"
         )
         question = result.content
     else:
@@ -72,6 +83,9 @@ async def query_chain(message):
             ("system", limits_system_prompt),
         ]
     )
+    if message["description"]:
+        expert_prompt.append(("system", description_system_prompt))
+
     logger.info("System messages applied.")
     logger.info("Adding history...")
     expert_prompt += history_as_messages(history)
@@ -79,6 +93,7 @@ async def query_chain(message):
     logger.info("Adding last question...")
     expert_prompt.append(("human", "{question}"))
     logger.info("Last question added.")
+
     expert_chain = expert_prompt | chat_llm
 
     if knowledge_docs["ids"] and knowledge_docs["metadatas"]:
@@ -87,6 +102,8 @@ async def query_chain(message):
             {
                 "question": question,
                 "knowledge": combine_documents(knowledge_docs),
+                "vc_name": message["displayName"],
+                "description": message["description"],
             }
         )
         json_result = {}
@@ -134,22 +151,32 @@ async def query_chain(message):
             logger.info("Translation not needed or impossible.")
             json_result["original_answer"] = json_result["answer"]
 
-        source_scores = json_result.pop("source_scores")
+        source_scores = {}
+        for source_id, score in json_result.pop("source_scores").items():
+            # occasionally the source score keys are returned as 'source:0' and not '0'
+            # the processing below will extract the index in both cases
+            match = re.search(r"\d+", source_id)
+            if match:
+                source_id = match.group(0)
+            source_scores[source_id] = score
+
         if len(source_scores) > 0:
             # add score and URI to the sources
-            sources = [
-                dict(doc)
-                # most of this processing should be removed from here
-                | {
-                    "score": source_scores[str(index)],
-                    "uri": doc["source"],
-                    "title": "[{}] {}".format(
-                        str(doc["type"]).replace("_", " ").lower().capitalize(),
-                        doc["title"],
-                    ),
-                }
-                for index, doc in enumerate(knowledge_docs["metadatas"][0])
-            ]
+            sources = []
+
+            for index, doc in enumerate(knowledge_docs["metadatas"][0]):
+                if str(index) in source_scores and source_scores[str(index)] > 0:
+                    sources.append(
+                        dict(doc)
+                        | {
+                            "score": source_scores[str(index)],
+                            "uri": doc["source"],
+                            "title": "[{}] {}".format(
+                                str(doc["type"]).replace("_", " ").lower().capitalize(),
+                                doc["title"],
+                            ),
+                        }
+                    )
             json_result["sources"] = list(
                 {doc["source"]: doc for doc in sources}.values()
             )
