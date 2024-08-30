@@ -2,6 +2,18 @@ from chromadb.utils.embedding_functions import OpenAIEmbeddingFunction
 from config import config, LOG_LEVEL
 from langchain_mistralai.chat_models import ChatMistralAI
 
+from azure.ai.inference import ChatCompletionsClient
+from azure.core.credentials import AzureKeyCredential
+
+chat_llm = ChatCompletionsClient(
+    endpoint=config["mistral_endpoint"],
+    credential=AzureKeyCredential(config["mistral_api_key"]),
+)
+
+condenser_llm = ChatCompletionsClient(
+    endpoint=config["mistral_endpoint"],
+    credential=AzureKeyCredential(config["mistral_api_key"]),
+)
 
 # verbose output for LLMs
 if LOG_LEVEL == "DEBUG":
@@ -10,15 +22,15 @@ else:
     verbose_models = False
 
 
-chat_llm = ChatMistralAI(
-    endpoint=config["mistral_endpoint"],
-    api_key=config["mistral_api_key"],
-)
+# chat_llm = ChatMistralAI(
+#     endpoint=config["mistral_endpoint"],
+#     api_key=config["mistral_api_key"],
+# )
 
-condenser_llm = ChatMistralAI(
-    endpoint=config["mistral_endpoint"],
-    api_key=config["mistral_api_key"],
-)
+# condenser_llm = ChatMistralAI(
+#     endpoint=config["mistral_endpoint"],
+#     api_key=config["mistral_api_key"],
+# )
 
 embed_func = OpenAIEmbeddingFunction(
     api_key=config["openai_api_key"],
