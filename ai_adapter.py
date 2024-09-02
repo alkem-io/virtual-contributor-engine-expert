@@ -76,7 +76,7 @@ async def query_chain(message):
     # context_docs = load_context(question, message["contextID"])
 
     logger.info("Creating expert prompt. Applying system messages...")
-    messages = [
+    messages: list[SystemMessage | UserMessage] = [
         SystemMessage(
             content=expert_system_prompt.format(vc_name=message["displayName"])
         ),
