@@ -90,16 +90,15 @@ async def query_chain(message):
     ]
 
     if message["description"] and len(message["description"]) > 0:
-        # expert_prompt.append(("system", description_system_prompt))
         messages.append(SystemMessage(content=description_system_prompt))
 
     logger.info("System messages applied.")
     logger.info("Adding history...")
-    # expert_prompt += history_as_messages(history)
     logger.info("History added.")
     logger.info("Adding last question...")
-    # expert_prompt.append(("human", "{question}"))
+
     messages.append(UserMessage(content=question))
+
     logger.info("Last question added.")
 
     if knowledge_docs["ids"] and knowledge_docs["metadatas"]:
