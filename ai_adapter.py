@@ -1,11 +1,9 @@
 import re
 import json
 from config import config
-from langchain.prompts import ChatPromptTemplate
 from logger import setup_logger
 from utils import (
     history_as_text,
-    history_as_messages,
     combine_documents,
     load_knowledge,
 )
@@ -18,7 +16,9 @@ from prompts import (
     translator_system_prompt,
     condenser_system_prompt,
 )
-from models import chat_llm, condenser_llm
+from models import invoke_model
+from azure.ai.inference.models import SystemMessage, UserMessage
+
 
 logger = setup_logger(__name__)
 
@@ -55,17 +55,18 @@ async def query_chain(message):
     # - born? =======> rephrased to: tell me about the birth of Queen Máxima of the Netherlands
     if len(history) > 0:
         logger.info(f"We have history. Let's rephrase. Length is: {len(history)}.")
-        condenser_messages = [("system", condenser_system_prompt)]
-        condenser_promt = ChatPromptTemplate.from_messages(condenser_messages)
-        condenser_chain = condenser_promt | condenser_llm
-
-        result = condenser_chain.invoke(
-            {"question": question, "chat_history": history_as_text(history)}
-        )
+        messages = [
+            SystemMessage(
+                content=condenser_system_prompt.format(
+                    chat_history=history_as_text(history), question=question
+                )
+            )
+        ]
+        result = invoke_model(messages)
         logger.info(
-            f"Original question is: '{question}'; Rephrased question is: '{result.content}'"
+            f"Original question is: '{question}'; Rephrased question is: '{result}'"
         )
-        question = result.content
+        question = result
     else:
         logger.info("No history to handle, initial interaction")
 
@@ -75,42 +76,39 @@ async def query_chain(message):
     # context_docs = load_context(question, message["contextID"])
 
     logger.info("Creating expert prompt. Applying system messages...")
-    expert_prompt = ChatPromptTemplate.from_messages(
-        [
-            ("system", expert_system_prompt),
-            ("system", bok_system_prompt),
-            ("system", response_system_prompt),
-            ("system", limits_system_prompt),
-        ]
-    )
-    if message["description"]:
-        expert_prompt.append(("system", description_system_prompt))
+    messages: list[SystemMessage | UserMessage] = [
+        SystemMessage(
+            content=expert_system_prompt.format(vc_name=message["displayName"])
+        ),
+        SystemMessage(
+            content=bok_system_prompt.format(
+                knowledge=combine_documents(knowledge_docs)
+            )
+        ),
+        SystemMessage(content=response_system_prompt),
+        SystemMessage(content=limits_system_prompt),
+    ]
+
+    if message["description"] and len(message["description"]) > 0:
+        messages.append(SystemMessage(content=description_system_prompt))
 
     logger.info("System messages applied.")
     logger.info("Adding history...")
-    expert_prompt += history_as_messages(history)
     logger.info("History added.")
     logger.info("Adding last question...")
-    expert_prompt.append(("human", "{question}"))
-    logger.info("Last question added.")
 
-    expert_chain = expert_prompt | chat_llm
+    messages.append(UserMessage(content=question))
+
+    logger.info("Last question added.")
 
     if knowledge_docs["ids"] and knowledge_docs["metadatas"]:
         logger.info("Invoking expert chain...")
-        result = expert_chain.invoke(
-            {
-                "question": question,
-                "knowledge": combine_documents(knowledge_docs),
-                "vc_name": message["displayName"],
-                "description": message["description"],
-            }
-        )
+        answer = invoke_model(messages)
         json_result = {}
-        logger.info(f"Expert chain invoked. Result is `{str(result.content)}`")
+        logger.info(f"Expert chain invoked. Result is `{answer}`")
         try:
             # try to parse a valid JSON response from the main expert engine
-            json_result = json.loads(str(result.content))
+            json_result = json.loads(answer)
             logger.info("Engine chain returned valid JSON.")
         except:
             # not an actual error; behaviour is semi-expected
@@ -118,8 +116,8 @@ async def query_chain(message):
                 "Engine chain returned invalid JSON. Falling back to default result schema."
             )
             json_result = {
-                "answer": result.content,
-                "original_answer": result.content,
+                "answer": answer,
+                "original_answer": answer,
                 "source_scores": {},
             }
 
@@ -133,19 +131,16 @@ async def query_chain(message):
             logger.info(
                 f"Creating translsator chain. Human language is {target_lang}; answer language is {json_result['answer_language']}"
             )
-            translator_prompt = ChatPromptTemplate.from_messages(
-                [("system", translator_system_prompt), ("human", "{text}")]
-            )
-            translator_chain = translator_prompt | chat_llm
+            messages = [
+                SystemMessage(
+                    content=translator_system_prompt.format(target_language=target_lang)
+                ),
+                UserMessage(content=json_result["answer"]),
+            ]
+            translated = invoke_model(messages)
 
-            translation_result = translator_chain.invoke(
-                {
-                    "target_language": target_lang,
-                    "text": json_result["answer"],
-                }
-            )
             json_result["original_answer"] = json_result.pop("answer")
-            json_result["answer"] = translation_result.content
+            json_result["answer"] = translated
             logger.info(f"Translation completed. Result is: {json_result['answer']}")
         else:
             logger.info("Translation not needed or impossible.")
