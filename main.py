@@ -40,7 +40,6 @@ class RabbitMQ:
             host=self.host, login=self.login, password=self.password
         )
         self.channel = await self.connection.channel()
-        await self.channel.declare_queue(self.queue, auto_delete=False)
 
 
 rabbitmq = RabbitMQ(
@@ -180,7 +179,9 @@ async def main():
 
     if rabbitmq.channel:
         await rabbitmq.channel.set_qos(prefetch_count=20)
-        queue = await rabbitmq.channel.declare_queue(rabbitmq.queue, auto_delete=False)
+        queue = await rabbitmq.channel.declare_queue(
+            rabbitmq.queue, auto_delete=False, durable=True
+        )
 
         # Start consuming messages
         asyncio.create_task(queue.consume(on_request))
