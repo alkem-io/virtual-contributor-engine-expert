@@ -21,11 +21,11 @@ def setup_logger(name):
     f_handler.setLevel(logging.WARNING)
 
     c_format = logging.Formatter(
-        '{ "time": "%(asctime)s", "name": "%(name)s", "level": "%(levelname)s", "message": "%(message)s" }',
+        '{"time": "%(asctime)s", "name": %(name)r, "level": "%(levelname)s", "message": %(message)r}',
         "%m-%d %H:%M:%S",
     )
     f_format = logging.Formatter(
-        '{ "time": "%(asctime)s", "name": "%(name)s", "level": "%(levelname)s", "message": "%(message)s" }',
+        '{"time": "%(asctime)s", "name": %(name)r, "level": "%(levelname)s", "message": %(message)r}',
         "%m-%d %H:%M:%S",
     )
 

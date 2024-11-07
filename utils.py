@@ -1,5 +1,8 @@
 import re
-from alkemio_virtual_contributor_engine.events.input import HistoryItem
+from alkemio_virtual_contributor_engine.events.input import (
+    HistoryItem,
+    MessageSenderRole,
+)
 from db_client import DbClient
 from models import embed_func
 from logger import setup_logger
@@ -12,15 +15,15 @@ def clear_tags(message):
 
 
 def entry_as_string(entry: HistoryItem):
-    if entry.role == "human":
+    if entry.role == MessageSenderRole.HUMAN:
         return f"Human: {clear_tags(entry.content)}"
     return f"Assistant: {clear_tags(entry.content)}"
 
 
 def entry_as_message(entry):
-    if entry["role"] == "human":
-        return ("human", clear_tags(entry["content"]))
-    return ("assistant", clear_tags(entry["content"]))
+    if entry.role == MessageSenderRole.HUMAN:
+        return ("human", clear_tags(entry.content))
+    return ("assistant", clear_tags(entry.content))
 
 
 def history_as_text(history: list[HistoryItem]):

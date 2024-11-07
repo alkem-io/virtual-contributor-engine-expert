@@ -77,7 +77,7 @@ async def query_chain(input: Input):
     knowledge_docs = load_knowledge(message, input.bok_id)
 
     # TODO bring back the context space usage
-    # context_docs = load_context(message, message["contextID"])
+    # context_docs = load_context(message, input.context_id)
 
     logger.info("Creating expert prompt. Applying system messages...")
     messages: list[SystemMessage | UserMessage] = [
@@ -112,7 +112,7 @@ async def query_chain(input: Input):
             # try to parse a valid JSON response from the main expert engine
             json_result = json.loads(result)
             logger.info("Engine chain returned valid JSON.")
-        except:
+        except json.JSONDecodeError:
             # not an actual error; behaviour is semi-expected
             logger.info(
                 "Engine chain returned invalid JSON. Falling back to default result schema."

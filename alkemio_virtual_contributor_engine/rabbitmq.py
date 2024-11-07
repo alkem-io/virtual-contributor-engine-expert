@@ -56,5 +56,6 @@ class RabbitMQ:
             aio_pika.exceptions.AMQPError,
             asyncio.exceptions.CancelledError,
             aiormq.exceptions.ChannelInvalidStateError,
+            Exception,
         ) as e:
             logger.error(f"Failed to publish message due to a RabbitMQ error: {e}")

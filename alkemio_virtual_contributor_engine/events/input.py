@@ -1,20 +1,52 @@
+from dataclasses import dataclass
+from enum import Enum
+from typing import Any, Dict, List
+
+
+class ResultHandlerAction(Enum):
+    POST_REPLY = "postReply"
+
+
+class MessageSenderRole(Enum):
+    HUMAN = "human"
+    ASSISTANT = "assistant"
+
+
+@dataclass
 class HistoryItem:
+    content: str
+    role: MessageSenderRole
+
     def __init__(self, item: dict):
+        if "content" not in item or "role" not in item:
+            raise ValueError("Missing required fields: content, role")
+
         self.content = item["content"]
         self.role = item["role"]
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, str | MessageSenderRole]:
         return {"content": self.content, "role": self.role}
 
 
+@dataclass
 class RoomDetails:
-    def __init__(self, details):
+    room_id: str
+    thread_id: str
+    communication_id: str
+    interaction_id: str
+
+    def __init__(self, details: Dict[str, Any]) -> None:
+        required_fields = {"roomID", "threadID", "communicationID", "vcInteractionID"}
+        if not all(field in details for field in required_fields):
+            raise ValueError(
+                f"Missing required fields: {required_fields - set(details.keys())}"
+            )
         self.room_id = details["roomID"]
         self.thread_id = details["threadID"]
         self.communication_id = details["communicationID"]
         self.interaction_id = details["vcInteractionID"]
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, str]:
         return {
             "roomID": self.room_id,
             "threadID": self.thread_id,
@@ -23,30 +55,72 @@ class RoomDetails:
         }
 
 
+@dataclass
 class ResultHandler:
+    action: ResultHandlerAction
+    room_details: RoomDetails
+
     def __init__(self, config):
+        if "action" not in config or "roomDetails" not in config:
+            raise ValueError("Missing required fields: action, roomDetails")
         self.action = config["action"]
         self.room_details = RoomDetails(config["roomDetails"])
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, ResultHandlerAction | Dict[str, str]]:
         return {"action": self.action, "roomDetails": self.room_details.to_dict()}
 
 
+@dataclass
 class Input:
-    def __init__(self, input: dict):
-        self.engine = input["engine"]
-        self.prompt = input["prompt"]
-        self.user_id = input["userID"]
-        self.message = input["message"]
-        self.bok_id = input["bodyOfKnowledgeID"]
-        self.context_id = input["contextID"]
-        self.history = list(map(lambda item: HistoryItem(item), input["history"]))
-        self.external_metadata = input["externalMetadata"]
-        self.display_name = input["displayName"]
-        self.description = input["description"]
-        self.external_config = input["externalConfig"]
-        self.result_handler = ResultHandler(input["resultHandler"])
-        self.persona_service_id = input["personaServiceID"]
+    engine: str
+    prompt: str
+    user_id: str
+    message: str
+    bok_id: str
+    context_id: str
+    history: List[HistoryItem]
+    external_metadata: Dict[str, Any]
+    display_name: str
+    description: str
+    external_config: Dict[str, Any]
+    result_handler: ResultHandler
+    persona_service_id: str
+
+    def __init__(self, input_data: Dict[str, Any]) -> None:
+        if not isinstance(input_data, dict):
+            raise TypeError("Expected dictionary input")
+
+        required_fields = {
+            "engine",
+            "prompt",
+            "userID",
+            "message",
+            "bodyOfKnowledgeID",
+            "contextID",
+            "history",
+            "externalMetadata",
+            "displayName",
+            "description",
+            "externalConfig",
+            "resultHandler",
+            "personaServiceID",
+        }
+        if missing := required_fields - set(input_data.keys()):
+            raise ValueError(f"Missing required fields: {missing}")
+
+        self.engine = str(input_data["engine"])
+        self.prompt = str(input_data["prompt"])
+        self.user_id = str(input_data["userID"])
+        self.message = str(input_data["message"])
+        self.bok_id = str(input_data["bodyOfKnowledgeID"])
+        self.context_id = str(input_data["contextID"])
+        self.history = [HistoryItem(item) for item in input_data["history"]]
+        self.external_metadata = dict(input_data["externalMetadata"])
+        self.display_name = str(input_data["displayName"])
+        self.description = str(input_data["description"])
+        self.external_config = dict(input_data["externalConfig"])
+        self.result_handler = ResultHandler(input_data["resultHandler"])
+        self.persona_service_id = str(input_data["personaServiceID"])
 
     def to_dict(self):
         return {
@@ -56,7 +130,7 @@ class Input:
             "message": self.message,
             "bodyOfKnowledgeID": self.bok_id,
             "contextID": self.context_id,
-            "history": list(map(lambda item: item.to_dict(), self.history)),
+            "history": [item.to_dict() for item in self.history],
             "externalMetadata": self.external_metadata,
             "displayName": self.display_name,
             "description": self.description,
