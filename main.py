@@ -16,7 +16,7 @@ logger.info(f"log level {os.path.basename(__file__)}: {LOG_LEVEL}")
 
 
 async def on_request(input: Input) -> Response:
-    logger.info(f"Expert egine invoked; Input is {input.to_dict()}")
+    logger.info(f"Expert engine invoked; Input is {input.to_dict()}")
     logger.info(
         f"AiPersonaServiceID={input.persona_service_id} with VC name `{input.display_name}` invoked."
     )
