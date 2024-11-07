@@ -61,7 +61,7 @@ class AlkemioVirtualContributorEngine:
                 {"response": response.to_dict(), "original": input.to_dict()}
             )
 
-            logger.info(f"Response for {message.correlation_id} published")
+            logger.info("Response for published.")
 
     def register_handler(
         self, handler: Callable[[Input], Coroutine[Any, Any, Response]]
