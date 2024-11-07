@@ -24,25 +24,33 @@ class RabbitMQ:
         self.result_queue = None
 
     async def connect(self):
-        self.connection = await connect_robust(
-            host=self.host, login=self.username, password=self.password
-        )
-        self.channel = await self.connection.channel()
+        try:
+            self.connection = await connect_robust(
+                host=self.host, login=self.username, password=self.password
+            )
+            self.channel = await self.connection.channel()
 
-        self.input_queue = await self.channel.declare_queue(
-            self.input_queue_name, auto_delete=False, durable=True
-        )
-        self.result_queue = await self.channel.declare_queue(
-            self.result_queue_name, auto_delete=False, durable=True
-        )
-        self.exchange = await self.channel.declare_exchange(
-            env.rabbitmq_exchange, ExchangeType.DIRECT, durable=True
-        )
-        await self.result_queue.bind(self.exchange, env.rabbitmq_result_routing_key)
+            self.input_queue = await self.channel.declare_queue(
+                self.input_queue_name, auto_delete=False, durable=True
+            )
+            self.result_queue = await self.channel.declare_queue(
+                self.result_queue_name, auto_delete=False, durable=True
+            )
+            self.exchange = await self.channel.declare_exchange(
+                env.rabbitmq_exchange, ExchangeType.DIRECT, durable=True
+            )
+            await self.result_queue.bind(self.exchange, env.rabbitmq_result_routing_key)
+        except (aio_pika.exceptions.AMQPError, Exception) as e:
+            logger.error(f"Failed to establish RabbitMQ connection: {e}")
+            raise
 
     async def consume(self, callback):
-        if not self.input_queue is None:
-            await self.input_queue.consume(callback)
+        if self.input_queue is not None:
+            try:
+                await self.input_queue.consume(callback)
+            except Exception as e:
+                logger.error(f"Error during message consumption: {e}")
+                raise
 
     async def publish(self, message):
         try:

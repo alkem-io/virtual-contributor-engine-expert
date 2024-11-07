@@ -30,10 +30,11 @@ class AlkemioVirtualContributorEngine:
         await self.rabbitmq.consume(self.invoke_handler)
         try:
             await asyncio.Future()
+        except asyncio.CancelledError:
+            logger.info("Engine shutdown initiated")
         except Exception as e:
-            print("\n\n\n")
-            print(e)
-            print("\n\n\n")
+            logger.error(f"Unexpected error in engine: {e}", exc_info=True)
+            raise
 
     async def invoke_handler(self, message: AbstractIncomingMessage):
         logger.info("New message received.")

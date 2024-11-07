@@ -22,10 +22,10 @@ class HistoryItem:
             raise ValueError("Missing required fields: content, role")
 
         self.content = item["content"]
-        self.role = item["role"]
+        self.role = MessageSenderRole(item["role"])
 
     def to_dict(self) -> Dict[str, str | MessageSenderRole]:
-        return {"content": self.content, "role": self.role}
+        return {"content": self.content, "role": self.role.value}
 
 
 @dataclass
@@ -63,11 +63,11 @@ class ResultHandler:
     def __init__(self, config):
         if "action" not in config or "roomDetails" not in config:
             raise ValueError("Missing required fields: action, roomDetails")
-        self.action = config["action"]
+        self.action = ResultHandlerAction(config["action"])
         self.room_details = RoomDetails(config["roomDetails"])
 
-    def to_dict(self) -> Dict[str, ResultHandlerAction | Dict[str, str]]:
-        return {"action": self.action, "roomDetails": self.room_details.to_dict()}
+    def to_dict(self) -> Dict[str, str | Dict[str, str]]:
+        return {"action": self.action.value, "roomDetails": self.room_details.to_dict()}
 
 
 @dataclass
