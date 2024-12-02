@@ -1,7 +1,7 @@
 import re
 import json
 from alkemio_virtual_contributor_engine.events.input import Input
-from alkemio_virtual_contributor_engine.events.result import Response
+from alkemio_virtual_contributor_engine.events.response import Response
 from config import config
 from logger import setup_logger
 from utils import (
@@ -46,17 +46,17 @@ async def invoke(input: Input) -> Response:
 # how do we handle languages? not all spaces are in Dutch obviously
 # translating the message to the data _base language_ should be a separate call
 # so the translation could be used for embeddings retrieval
-async def query_chain(input: Input):
+async def query_chain(input: Input) -> Response:
 
     # use the last N message from the history except the last one
     # as it is the message we are resulting now
-    history = input.history[(config["history_length"] + 1) * -1 : -1]
     message = clear_tags(input.message)
 
     # if we have history try to add context from it into the last message
     # - who is Maxima?
     # - Maxima is the Queen of The Netherlands
     # - born? =======> rephrased to: tell me about the birth of Queen Máxima of the Netherlands
+    history = input.history[(config["history_length"] + 1) * -1 : -1]
     if len(history) > 0:
         logger.info(f"We have history. Let's rephrase. Length is: {len(history)}.")
         messages = [

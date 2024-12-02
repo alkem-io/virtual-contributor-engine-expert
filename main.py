@@ -5,7 +5,7 @@ from alkemio_virtual_contributor_engine.alkemio_vc_engine import (
     AlkemioVirtualContributorEngine,
 )
 from alkemio_virtual_contributor_engine.events.input import Input
-from alkemio_virtual_contributor_engine.events.result import Response
+from alkemio_virtual_contributor_engine.events.response import Response
 from config import LOG_LEVEL
 from logger import setup_logger
 
