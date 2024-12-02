@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "virtual-contributor-engine-expert"
-version = "0.8.1"
+version = "0.9.0"
 description = "Alkemio Generative AI Virtul Persona"
 authors = ["Alkemio BV <info@alkem.io>"]
 license = "EUPL-1.2"
