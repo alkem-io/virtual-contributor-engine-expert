@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# TODO use the Env class from the alkemio-virtual-contributor-engine package
 config = {
     "db_host": os.getenv("VECTOR_DB_HOST"),
     "db_port": os.getenv("VECTOR_DB_PORT"),
@@ -21,6 +22,7 @@ config = {
     "rabbitmq_user": os.getenv("RABBITMQ_USER"),
     "rabbitmq_password": os.getenv("RABBITMQ_PASSWORD"),
     "rabbitmq_queue": os.getenv("RABBITMQ_QUEUE"),
+    "rabbitmq_result_queue": os.getenv("RABBITMQ_RESULT_QUEUE"),
     "source_website": os.getenv("AI_SOURCE_WEBSITE"),
     "local_path": os.getenv("AI_LOCAL_PATH") or "",
     "history_length": int(os.getenv("HISTORY_LENGTH") or "10"),
