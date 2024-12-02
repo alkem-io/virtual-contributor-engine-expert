@@ -201,8 +201,8 @@ asyncio = "3.4.3"
 [package.source]
 type = "git"
 url = "git@github.com:alkem-io/alkemio-virtual-contributor-engine.git"
-reference = "initial-version"
-resolved_reference = "c90d600be1583287f2351efc0b26ebcd137c8fce"
+reference = "v0.0.1"
+resolved_reference = "1946c3cab57df6475271bdb1747c238318de2c8c"
 
 [[package]]
 name = "annotated-types"
@@ -2586,4 +2586,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.11"
-content-hash = "b9dd8e1745ca05d5b743e346ac5d0f77ac01aaee2c9340df0fe6e400221b1658"
+content-hash = "375d6213b8159e91c7ce56e7cbbd1c7e3a42a87dc5eee0a71cb7c17e6ea39ea9"
