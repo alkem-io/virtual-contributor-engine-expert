@@ -1,8 +1,11 @@
 import re
 import json
+from alkemio_virtual_contributor_engine.events.input import Input
+from alkemio_virtual_contributor_engine.events.response import Response
 from config import config
 from logger import setup_logger
 from utils import (
+    clear_tags,
     history_as_text,
     combine_documents,
     load_knowledge,
@@ -23,63 +26,62 @@ from azure.ai.inference.models import SystemMessage, UserMessage
 logger = setup_logger(__name__)
 
 
-async def invoke(message):
-    logger.info(message)
+async def invoke(input: Input) -> Response:
     try:
         # important to await the result before returning
-        return await query_chain(message)
+        return await query_chain(input)
     except Exception as inst:
         logger.exception(inst)
-        answer = f"{message['displayName']} - the Alkemio's VirtualContributor is currently unavailable."
+        result = f"{input.display_name} - the Alkemio's VirtualContributor is currently unavailable."
 
-        return {
-            "answer": answer,
-            "original_answer": answer,
-            "sources": [],
-        }
+        return Response(
+            {
+                "result": result,
+                "original_result": result,
+                "sources": [],
+            }
+        )
 
 
 # how do we handle languages? not all spaces are in Dutch obviously
-# translating the question to the data _base language_ should be a separate call
+# translating the message to the data _base language_ should be a separate call
 # so the translation could be used for embeddings retrieval
-async def query_chain(message):
+async def query_chain(input: Input) -> Response:
 
     # use the last N message from the history except the last one
-    # as it is the question we are answering now
-    history = message["history"][(config["history_length"] + 1) * -1 : -1]
-    question = message["question"]
+    # as it is the message we are resulting now
+    message = clear_tags(input.message)
 
-    # if we have history try to add context from it into the last question
+    # if we have history try to add context from it into the last message
     # - who is Maxima?
     # - Maxima is the Queen of The Netherlands
     # - born? =======> rephrased to: tell me about the birth of Queen Máxima of the Netherlands
+    history = input.history[(config["history_length"] + 1) * -1 : -1]
     if len(history) > 0:
         logger.info(f"We have history. Let's rephrase. Length is: {len(history)}.")
         messages = [
             SystemMessage(
                 content=condenser_system_prompt.format(
-                    chat_history=history_as_text(history), question=question
+                    chat_history=history_as_text(history), message=message
                 )
             )
         ]
         result = invoke_model(messages)
         logger.info(
-            f"Original question is: '{question}'; Rephrased question is: '{result}'"
+            f"Original message is: '{message}'; Rephrased message is: '{result}'"
         )
-        question = result
+        message = result
     else:
         logger.info("No history to handle, initial interaction")
 
-    knowledge_docs = load_knowledge(question, message["bodyOfKnowledgeID"])
+    knowledge_docs = load_knowledge(message, input.bok_id)
 
     # TODO bring back the context space usage
-    # context_docs = load_context(question, message["contextID"])
+    # context_docs = load_context(message, input.context_id)
 
     logger.info("Creating expert prompt. Applying system messages...")
     messages: list[SystemMessage | UserMessage] = [
-        SystemMessage(
-            content=expert_system_prompt.format(vc_name=message["displayName"])
-        ),
+        SystemMessage(content=expert_system_prompt.format(vc_name=input.display_name)),
         SystemMessage(
             content=bok_system_prompt.format(
                 knowledge=combine_documents(knowledge_docs)
@@ -89,62 +91,62 @@ async def query_chain(message):
         SystemMessage(content=limits_system_prompt),
     ]
 
-    if message["description"] and len(message["description"]) > 0:
+    if input.description and len(input.description) > 0:
         messages.append(SystemMessage(content=description_system_prompt))
 
     logger.info("System messages applied.")
     logger.info("Adding history...")
     logger.info("History added.")
-    logger.info("Adding last question...")
+    logger.info("Adding last message...")
 
-    messages.append(UserMessage(content=question))
+    messages.append(UserMessage(content=message))
 
-    logger.info("Last question added.")
+    logger.info("Last message added.")
 
     if knowledge_docs["ids"] and knowledge_docs["metadatas"]:
         logger.info("Invoking expert chain...")
-        answer = invoke_model(messages)
+        result = invoke_model(messages)
         json_result = {}
-        logger.info(f"Expert chain invoked. Result is `{answer}`")
+        logger.info(f"Expert chain invoked. Result is `{result}`")
         try:
             # try to parse a valid JSON response from the main expert engine
-            json_result = json.loads(answer)
+            json_result = json.loads(result)
             logger.info("Engine chain returned valid JSON.")
-        except:
+        except json.JSONDecodeError:
             # not an actual error; behaviour is semi-expected
             logger.info(
                 "Engine chain returned invalid JSON. Falling back to default result schema."
             )
             json_result = {
-                "answer": answer,
-                "original_answer": answer,
+                "result": result,
+                "original_result": result,
                 "source_scores": {},
             }
 
         # if we have the human language
         if (
             "human_language" in json_result
-            and "answer_language" in json_result
-            and json_result["human_language"] != json_result["answer_language"]
+            and "result_language" in json_result
+            and json_result["human_language"] != json_result["result_language"]
         ):
             target_lang = json_result["human_language"]
             logger.info(
-                f"Creating translsator chain. Human language is {target_lang}; answer language is {json_result['answer_language']}"
+                f"Creating translsator chain. Human language is {target_lang}; result language is {json_result['result_language']}"
             )
             messages = [
                 SystemMessage(
                     content=translator_system_prompt.format(target_language=target_lang)
                 ),
-                UserMessage(content=json_result["answer"]),
+                UserMessage(content=json_result["result"]),
             ]
             translated = invoke_model(messages)
 
-            json_result["original_answer"] = json_result.pop("answer")
-            json_result["answer"] = translated
-            logger.info(f"Translation completed. Result is: {json_result['answer']}")
+            json_result["original_result"] = json_result.pop("result")
+            json_result["result"] = translated
+            logger.info(f"Translation completed. Result is: {json_result['result']}")
         else:
             logger.info("Translation not needed or impossible.")
-            json_result["original_answer"] = json_result["answer"]
+            json_result["original_result"] = json_result["result"]
 
         source_scores = {}
         for source_id, score in json_result.pop("source_scores").items():
@@ -176,6 +178,6 @@ async def query_chain(message):
                 {doc["source"]: doc for doc in sources}.values()
             )
 
-        return json_result
+        return Response(json_result)
 
-    return {"answer": "", "original_answer": "", "sources": []}
+    return Response({"result": "", "original_result": "", "sources": []})
