@@ -1,4 +1,6 @@
-from chromadb.utils.embedding_functions import OpenAIEmbeddingFunction
+from chromadb.utils.embedding_functions.openai_embedding_function import (
+    OpenAIEmbeddingFunction,
+)
 from config import config
 from azure.ai.inference import ChatCompletionsClient
 from azure.core.credentials import AzureKeyCredential
