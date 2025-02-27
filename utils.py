@@ -3,7 +3,7 @@ from alkemio_virtual_contributor_engine.events.input import (
     HistoryItem,
     MessageSenderRole,
 )
-from db_client import DbClient
+from alkemio_virtual_contributor_engine.chromadb_client import chromadb_client
 from models import embed_func
 from logger import setup_logger
 
@@ -56,8 +56,10 @@ def load_knowledge(query, knowledgeId):
 
 def load_documents(query, collection_name, num_docs=4):
     try:
-        db_client = DbClient()
-        return db_client.query_docs(query, collection_name, embed_func, num_docs)
+        collection = chromadb_client.get_collection(
+            collection_name, embedding_function=embed_func
+        )
+        return collection.query(query_texts=[query], n_results=num_docs)
     except Exception as inst:
         logger.error(
             f"Error querying collection {collection_name} for question `{query}`"
