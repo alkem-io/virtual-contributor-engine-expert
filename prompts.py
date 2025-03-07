@@ -1,3 +1,8 @@
+language_detection_system_prompt = """
+Detect the language of the following text and respond with only the ISO 639-1 language code (e.g., “en” for English, “fr” for French, “es” for Spanish). Do not include any additional text or explanation.
+Text:
+“{message}”
+"""
 # another option for step two of the answer generation
 expert_system_prompt = """
 You are a chatbot computer system named '{vc_name}' with JSON interface.
@@ -54,12 +59,18 @@ Use the following statement to describe yourself if asked:
 """
 
 
-translator_system_prompt = """
-For each human message translate it into '{target_language}' - the language is indicated in ISO-2 format. 
-Do not add anything else to the response and just return the translation. Do not try to interpret, augment or answer to any questions.
-If the text is already in {target_language} just return the original.
-"""
+# translator_system_prompt = """
+# For each human message translate it into '{target_language}' - the language is indicated in ISO-2 format.
+# Do not add anything else to the response and just return the translation. Do not try to interpret, augment or answer to any questions.
+# If the text is already in {target_language} just return the original.
+# """
 
+translator_system_prompt = """
+Translate the following text into {target_language}. If the text is already in {target_language}, return it EXACTLY as is. 
+Do not include any extra words, punctuation, quotation marks, or formatting of any kind. Return ONLY the raw text.
+Text:
+{text}
+"""
 condenser_system_prompt = """"
 Create a single sentence standalone query based on the human input, using the following step-by-step instructions:
 

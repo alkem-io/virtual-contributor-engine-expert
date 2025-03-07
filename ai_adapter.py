@@ -11,6 +11,7 @@ from utils import (
     load_knowledge,
 )
 from prompts import (
+    language_detection_system_prompt,
     expert_system_prompt,
     description_system_prompt,
     bok_system_prompt,
@@ -51,6 +52,14 @@ async def query_chain(input: Input) -> Response:
     # use the last N message from the history except the last one
     # as it is the message we are resulting now
     message = clear_tags(input.message)
+
+    human_language = invoke_model(
+        [
+            SystemMessage(
+                content=language_detection_system_prompt.format(message=message)
+            ),
+        ]
+    )
 
     # if we have history try to add context from it into the last message
     # - who is Maxima?
@@ -127,17 +136,19 @@ async def query_chain(input: Input) -> Response:
         if (
             "human_language" in json_result
             and "result_language" in json_result
-            and json_result["human_language"] != json_result["result_language"]
+            # translate unconditinally as we can't rely on the result language key RN... :(
+            # and json_result["human_language"] != json_result["result_language"]
         ):
-            target_lang = json_result["human_language"]
+            target_lang = human_language  # json_result["human_language"]
             logger.info(
                 f"Creating translsator chain. Human language is {target_lang}; result language is {json_result['result_language']}"
             )
             messages = [
                 SystemMessage(
-                    content=translator_system_prompt.format(target_language=target_lang)
+                    content=translator_system_prompt.format(
+                        target_language=target_lang, text=json_result["result"]
+                    )
                 ),
-                UserMessage(content=json_result["result"]),
             ]
             translated = invoke_model(messages)
 
