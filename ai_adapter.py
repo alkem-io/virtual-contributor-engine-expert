@@ -33,11 +33,11 @@ async def invoke(input: Input) -> Response:
             "display_name": input.display_name,
         })
         json_result = {
-            "result": result['final_answer'],
-            "original_result": result['final_answer'],
-            "human_language": "en",
-            "result_language": "en",
-            "knowledge_language": "en",
+            "result": result.get("final_answer", ""),
+            "original_result": result.get("knowledge_answer", ""),
+            "human_language": result.get("human_language", "en"),
+            "result_language": result.get("knowledge_language", "en"),
+            "knowledge_language": result.get("knowledge_language", "en"),
             "source_scores": {},
         }
         knowledge_docs = result.get("knowledge_docs", {})

@@ -5,7 +5,7 @@ from langgraph.graph import END, StateGraph, START
 from logger import setup_logger
 from langchain.output_parsers import PydanticOutputParser
 from langchain.prompts import PromptTemplate
-from typing import Dict, Annotated, List, Optional, TypedDict, Sequence
+from typing import Dict, Annotated, List, Optional, TypedDict, Sequence, Any
 import operator
 from prompts import (
     combined_expert_prompt,
@@ -24,9 +24,9 @@ logger = setup_logger(__name__)
 
 class State(TypedDict):
     messages: Annotated[Sequence[BaseMessage], operator.add]
-    prompt: List[str]
+    prompt: Optional[List[str]]
     bok_id: str
-    knowledge_docs: Optional[List[str]]  # List of knowledge documents
+    knowledge_docs: Optional[Dict[str, Any]]  # List of knowledge documents
     context_answer: Optional[str]
     rephrased_question: Optional[str]
     context_question: Optional[str]
@@ -37,9 +37,6 @@ class State(TypedDict):
     human_language: Optional[str]
     knowledge_language: Optional[str]
     final_answer: Optional[str]
-
-    def __init__(self, **kwargs):
-        self['source_scores'] = {}
 
 def format_messages(state: State):
     logger.info('Number of messages in the state: %d', len(state['messages']))
@@ -109,7 +106,7 @@ def answer_question(state: State):
     parser = PydanticOutputParser(pydantic_object=AnswerResponse)
     format_instructions = parser.get_format_instructions()
     prompt = PromptTemplate(template=combined_expert_prompt,
-                            input_variables=["knowledge", "question", "description"],
+                            input_variables=["vc_name", "knowledge", "question", "description"],
                             partial_variables={"format_instructions": format_instructions})
 
     chain = prompt | llm | parser
