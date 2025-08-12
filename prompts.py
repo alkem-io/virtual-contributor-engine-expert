@@ -26,7 +26,7 @@ Your response should contain the follwing data points formatted as per the forma
  - human_language: the language used by the human message in ISO-2 format
  - answer_language: the language you used for your response in ISO-2 format
  - knowledge_language: the language used in the 'Knowledge' text block ISO-2 format
-Never refer to source_scores, human_language, result_language and knowledge_language in your answer.
+Never refer to source_scores, human_language, answer_language and knowledge_language in your answer.
 
 If you don't find the answer in your knowledge base, still follow the format instructions.
 
