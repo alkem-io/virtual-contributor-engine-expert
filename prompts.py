@@ -69,9 +69,6 @@ Output instructions:
 {output_instructions}
 """
 
-input_checker_format = """
-"""
-
 input_checker_prompt = """
 You are a conversation analyser. Below you are provided with a conversation between one or more humans and an assistant formatted like:
 ```
@@ -99,5 +96,4 @@ Conversation:
 
 Output format instructions:
 {format_instructions}
-
 """
