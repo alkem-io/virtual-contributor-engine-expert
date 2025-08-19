@@ -119,7 +119,7 @@ def evaluate_and_translate(state: State):
         final_answer: str = Field(
             description="The final answer to the user's question after evaluation and translation."
         )
-        orinal_answer: Optional[str] = Field(
+        original_answer: Optional[str] = Field(
             description="The original answer before translation."
         )
 
