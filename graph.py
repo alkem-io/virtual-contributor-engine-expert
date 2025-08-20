@@ -54,13 +54,6 @@ def check_input(state: State):
         context_question: Optional[str] = Field(
             description="A question asking the user to provide more information if needed.")
 
-        def to_dict(self):
-            return {
-                "rephrased_question": self.rephrased_question,
-                "context_answer": self.context_answer,
-                "context_question": self.context_question,
-            }
-
     parser = PydanticOutputParser(pydantic_object=FunctionOutput)
     format_instructions = parser.get_format_instructions()
     prompt = PromptTemplate(
@@ -73,9 +66,9 @@ def check_input(state: State):
 
     result = chain.invoke({"conversation": format_messages(state)})
 
-    logger.info(f'Input check result: {result.to_dict()}')
+    logger.info(f'Input check result: {result.model_dump()}')
 
-    return {**result.to_dict()}
+    return {**result.model_dump()}
 
 def answer_question(state: State):
 
@@ -94,15 +87,6 @@ def answer_question(state: State):
             description="ISO-639-1 code of knowledge text"
         )
 
-        def to_dict(self):
-            return {
-                "knowledge_answer": self.knowledge_answer,
-                "source_scores": self.source_scores,
-                "human_language": self.human_language,
-                "answer_language": self.answer_language,
-                "knowledge_language": self.knowledge_language,
-            }
-
     parser = PydanticOutputParser(pydantic_object=AnswerResponse)
     format_instructions = parser.get_format_instructions()
     prompt = PromptTemplate(template=combined_expert_prompt,
@@ -120,7 +104,7 @@ def answer_question(state: State):
 
     logger.info(result)
 
-    return {**result.to_dict()}
+    return {**result.model_dump()}
 
 def retrieve(state: State):
     logger.info('Retrieving information from the knowledge base.')
@@ -135,14 +119,9 @@ def evaluate_and_translate(state: State):
         final_answer: str = Field(
             description="The final answer to the user's question after evaluation and translation."
         )
-        orinal_answer: Optional[str] = Field(
+        original_answer: Optional[str] = Field(
             description="The original answer before translation."
         )
-
-        def to_dict(self):
-            return {
-                "final_answer": self.final_answer,
-            }
 
     parser = PydanticOutputParser(pydantic_object=EvaluationResponse)
     format_instructions = parser.get_format_instructions()
@@ -160,9 +139,9 @@ def evaluate_and_translate(state: State):
         "context_question": state.get('context_question', '')
     })
 
-    logger.info(f"Evaluation result: {result.to_dict()}")
+    logger.info(f"Evaluation result: {result.model_dump()}")
 
-    return {**result.to_dict()}
+    return {**result.model_dump()}
 
 
 graph_builder = StateGraph(State)
