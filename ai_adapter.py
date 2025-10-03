@@ -15,9 +15,9 @@ async def invoke(input: Input) -> Response:
         if not input.prompt_graph:
             raise Exception("promptGraph is required in Input.")
 
-        prompt_grpah = PromptGraph.from_dict(input.prompt_graph)
+        prompt_graph = PromptGraph.from_dict(input.prompt_graph)
 
-        graph = prompt_grpah.compile()
+        graph = prompt_graph.compile()
         result = graph.invoke({
             "messages": history_as_dict(input.history),
             "conversation": history_as_conversation(input.history),
