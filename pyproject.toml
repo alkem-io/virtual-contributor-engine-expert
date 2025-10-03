@@ -23,6 +23,7 @@ langchain-mistralai = "^0.2.12"
 chromadb-client = "1.1.0"
 pydantic = "2.11.9"
 alkemio-virtual-contributor-engine = {path = "../alkemio-virtual-contributor-engine"}
+json-schema-to-pydantic = "^0.4.3"
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "7.3.0"

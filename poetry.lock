@@ -1327,6 +1327,23 @@ files = [
 ]
 
 [[package]]
+name = "json-schema-to-pydantic"
+version = "0.4.3"
+description = "A Python library for automatically generating Pydantic v2 models from JSON Schema definitions"
+optional = false
+python-versions = ">=3.10"
+files = [
+    {file = "json_schema_to_pydantic-0.4.3-py3-none-any.whl", hash = "sha256:2f4b44446bffc27c922fc051b161ed0a758297674a0c41d0e74cc34d060bf1fd"},
+    {file = "json_schema_to_pydantic-0.4.3.tar.gz", hash = "sha256:6acb55fe573b64ef15649d243212309a039795bcf40d272b5bb79f9a8aab7f3f"},
+]
+
+[package.dependencies]
+pydantic = ">=2.10.4"
+
+[package.extras]
+dev = ["pytest (>=8.3.4)", "pytest-cov (>=6.0.0)"]
+
+[[package]]
 name = "jsonpatch"
 version = "1.33"
 description = "Apply JSON-Patches (RFC 6902)"
@@ -4557,4 +4574,4 @@ cffi = ["cffi (>=1.17,<2.0)", "cffi (>=2.0.0b)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.11"
-content-hash = "0510983b0de2328ef9eee373c62e0fb50c0a6aa94d9e8fd62f6656777f626496"
+content-hash = "863729bcccb8afd91a5d4a9e7b10caa211cb3c70aac96ff57ada54d3fe00bfd5"
