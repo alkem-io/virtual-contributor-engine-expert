@@ -1,6 +1,7 @@
 """Graph class for managing and executing prompt graphs."""
 from typing import Any, Dict, List, Optional, Type
-from pydantic import BaseModel, Field
+from typing import Callable
+from pydantic import BaseModel, Field, ConfigDict
 
 from .node import Node
 from .edge import Edge
@@ -25,7 +26,9 @@ class PromptGraph(BaseModel):
     """Represents a complete prompt graph with nodes, edges, and state.
 
     A Graph orchestrates the execution flow through multiple nodes, managing
-    state transitions and coordinating LLM interactions.
+    state transitions and coordinating LLM interactions. Special node names
+    can be configured via the special_nodes attribute to map node names to
+    custom callable functions that bypass the standard prompt/LLM processing.
 
     Attributes:
         nodes: Dictionary of nodes in the graph, keyed by node name
@@ -33,21 +36,28 @@ class PromptGraph(BaseModel):
         start_node: Name of the starting node (default "START")
         end_node: Name of the ending node (default "END")
         state_model: Pydantic model class for graph state
+    special_nodes: Mapping of node names to callable functions for nodes
+                   that require custom processing (default: {"retrieve": retrieve})
     """
 
     nodes: Dict[str, Node] = Field(default_factory=dict, description="Graph nodes by name")
     edges: List[Edge] = Field(default_factory=list, description="Graph edges")
     start_node: str = Field("START", alias="start", description="Starting node name")
     end_node: str = Field("END", alias="end", description="Ending node name")
+    special_nodes: Dict[str, Callable] = Field(
+        default_factory=lambda: {"retrieve": retrieve},
+        description="Mapping of node names to custom callable functions"
+    )
     state_model: Optional[Type[BaseModel]] = Field(
         None,
         exclude=True,
         description="Pydantic model for graph state"
     )
 
-    class Config:
-        populate_by_name = True
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(
+        validate_by_name=True,
+        arbitrary_types_allowed=True,
+    )
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "PromptGraph":
@@ -152,8 +162,8 @@ class PromptGraph(BaseModel):
 
         # Register nodes
         for node_name, node in self.nodes.items():
-            if node_name == "retrieve":
-                compiled_graph.add_node(node_name, retrieve)
+            if node_name in self.special_nodes:
+                compiled_graph.add_node(node_name, self.special_nodes[node_name])
                 continue
 
             def make_node_fn(node):
@@ -169,8 +179,17 @@ class PromptGraph(BaseModel):
                         partial_variables={"format_instructions": format_instructions}
                     )
 
-                    # Prepare input for chain from state
-                    input_dict = {var: getattr(state, var) for var in node.input_variables if hasattr(state, var)}
+                    # Validate all required input variables exist on state
+                    missing_vars = [var for var in node.input_variables if not hasattr(state, var)]
+                    if missing_vars:
+                        raise ValueError(
+                            f"Node '{node.name}' is missing required input variables from state: "
+                            f"{', '.join(missing_vars)}. Available state attributes: "
+                            f"{', '.join(dir(state))}"
+                        )
+                    
+                    # Prepare input for chain from state (all variables validated)
+                    input_dict = {var: getattr(state, var) for var in node.input_variables}
 
                     chain = prompt | llm | parser
                     result = chain.invoke(input_dict)
@@ -186,7 +205,5 @@ class PromptGraph(BaseModel):
                 compiled_graph.add_edge(edge.from_node, END)
             else:
                 compiled_graph.add_edge(edge.from_node, edge.to_node)
-
-        compiled_graph.add_edge("evaluate_and_translate", END)
 
         return compiled_graph.compile()

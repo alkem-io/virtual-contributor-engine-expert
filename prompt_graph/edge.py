@@ -1,7 +1,7 @@
 """Edge class for representing connections between nodes in the prompt graph."""
 
 from typing import Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class Edge(BaseModel):
@@ -17,8 +17,9 @@ class Edge(BaseModel):
     to_node: str = Field(..., alias="to", description="Destination node name")
     condition: Optional[str] = Field(None, description="Optional condition for this edge")
 
-    class Config:
-        populate_by_name = True  # Allow both 'from_node' and 'from' as field names
+    model_config = ConfigDict(
+        validate_by_name=True,
+    )
 
     def __repr__(self) -> str:
         if self.condition:

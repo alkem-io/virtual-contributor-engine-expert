@@ -1,6 +1,7 @@
 """State class for managing the graph execution state."""
+
 from typing import Any, Dict, Type
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from .json_graph_parser import parse_json_graph
 
 
@@ -13,14 +14,13 @@ class State(BaseModel):
     This base class provides methods for state management, but the actual state
     model should be created dynamically using the build_state_model class method.
     """
-
-    class Config:
-        extra = "allow"  # Allow additional fields not explicitly defined
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(
+        extra="allow",  # Allow additional fields not explicitly defined
+        arbitrary_types_allowed=True,
+    )
 
     @classmethod
     def build_state_model(cls, state_schema: Dict[str, Any]) -> Type[BaseModel]:
-        print(state_schema)
         """Build a dynamic Pydantic model from a state schema definition.
 
         This method takes the 'state' portion of the prompt graph JSON and creates

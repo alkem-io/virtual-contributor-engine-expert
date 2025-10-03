@@ -1,7 +1,7 @@
 """Node class for representing execution nodes in the prompt graph."""
 
 from typing import Any, Callable, Dict, List, Optional, Type
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from .json_graph_parser import parse_json_graph
 
 
@@ -40,9 +40,10 @@ class Node(BaseModel):
         description="Pydantic model built from output_schema"
     )
 
-    class Config:
-        populate_by_name = True
-        arbitrary_types_allowed = True  # Allow Type[BaseModel] as a field type
+    model_config = ConfigDict(
+        validate_by_name=True,
+        arbitrary_types_allowed=True,
+    )
 
     def __init__(self, **data: Any):
         """Initialize the Node and build its output model from the schema.

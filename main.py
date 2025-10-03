@@ -16,12 +16,12 @@ logger.info(f"log level {os.path.basename(__file__)}: {LOG_LEVEL}")
 
 
 async def on_request(input: Input) -> Response:
-    logger.info(f"Expert engine invoked; Input is {input.dict()}")
+    logger.info(f"Expert engine invoked; Input is {input.model_dump(exclude={'prompt_graph'})}")
     logger.info(
         f"AiPersonaServiceID={input.persona_id} with VC name `{input.display_name}` invoked."
     )
     result = await ai_adapter.invoke(input)
-    logger.info(f"LLM result: {result.dict()}")
+    logger.info(f"LLM result: {result.mode_dump()}")
     return result
 
 
