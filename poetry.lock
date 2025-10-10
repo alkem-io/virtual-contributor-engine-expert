@@ -218,8 +218,10 @@ load-dotenv = "^0.1.0"
 pydantic-settings = "^2.11.0"
 
 [package.source]
-type = "directory"
-url = "../alkemio-virtual-contributor-engine"
+type = "git"
+url = "https://git@github.com/alkem-io/virtual-contributor-engine.git"
+reference = "v0.3.0"
+resolved_reference = "94bb7d70f949b017f79819b50c77e9aecca41855"
 
 [[package]]
 name = "annotated-types"
@@ -3298,4 +3300,4 @@ cffi = ["cffi (>=1.17,<2.0)", "cffi (>=2.0.0b)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.11"
-content-hash = "b74e7d1f50229ee1c96d84fdb439d404f5f31939d8b3d07864f3a68c1136fc53"
+content-hash = "f77e6e019df6c90b9c704f720a54ac591fe321ad99f4cbd809e0149eac09c254"
