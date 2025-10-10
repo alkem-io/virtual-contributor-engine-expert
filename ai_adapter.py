@@ -1,37 +1,30 @@
-from alkemio_virtual_contributor_engine.events.input import Input
-from alkemio_virtual_contributor_engine.events.response import Response
-from langchain_core.messages import AIMessage, HumanMessage
-from alkemio_virtual_contributor_engine.events.input import (
-    HistoryItem,
-    MessageSenderRole,
-)
-from logger import setup_logger
+from alkemio_virtual_contributor_engine import Input, Response, setup_logger
 from utils import (
-    clear_tags,
+    history_as_conversation,
+    history_as_dict,
 )
-from graph import graph
+from prompt_graph import PromptGraph
 
 
 logger = setup_logger(__name__)
 
-def entry_as_langchain_message(entry):
-    if entry.role == MessageSenderRole.HUMAN:
-        return HumanMessage(content=clear_tags(entry.content))
-    return AIMessage(content=clear_tags(entry.content))
-
-def history_as_langchain_messages(history: list[HistoryItem]):
-    return list(map(entry_as_langchain_message, history))
-
 
 async def invoke(input: Input) -> Response:
     try:
+        if not input.prompt_graph:
+            raise Exception("promptGraph is required in Input.")
+
+        prompt_graph = PromptGraph.from_dict(input.prompt_graph)
+
+        graph = prompt_graph.compile()
         result = graph.invoke({
-            "messages": history_as_langchain_messages(input.history),
-            "prompt": input.prompt,
-            "bok_id": input.bok_id,
+            "messages": history_as_dict(input.history),
+            "conversation": history_as_conversation(input.history),
+            "bok_id": input.body_of_knowledge_id,
             "description": input.description,
             "display_name": input.display_name,
         })
+
         json_result = {
             "result": result.get("final_answer", ""),
             "original_result": result.get("knowledge_answer", ""),
@@ -46,10 +39,11 @@ async def invoke(input: Input) -> Response:
         if len(source_scores) > 0:
             # add score and URI to the sources
             for index, doc in enumerate(knowledge_docs["metadatas"][0]):
-                if index in source_scores and source_scores[index] > 0:
+                str_index = str(index)
+                if str_index in source_scores and source_scores[str_index] > 0:
                     sources.append(
                         dict(doc) | {
-                            "score": source_scores[index],
+                            "score": source_scores[str_index],
                             "uri": doc["source"],
                             "title": "[{}] {}".format(
                                 str(doc["type"]).replace("_", " ").lower().capitalize(),
@@ -61,14 +55,15 @@ async def invoke(input: Input) -> Response:
                 {doc["source"]: doc for doc in sources}.values()
             )
 
-        return Response(json_result)
+        return Response(**json_result)
 
     except Exception as inst:
         logger.exception(inst)
-        result = f"{input.display_name} - the Alkemio's VirtualContributor is currently unavailable."
+        result = f"{input.display_name} - the Alkemio's VirtualContributor \
+        is currently unavailable."
 
         return Response(
-            {
+            **{
                 "result": result,
                 "original_result": result,
                 "sources": [],
