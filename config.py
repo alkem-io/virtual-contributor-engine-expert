@@ -1,6 +1,5 @@
 import os
 from dotenv import load_dotenv
-
 load_dotenv()
 
 # TODO use the Env class from the alkemio-virtual-contributor-engine package

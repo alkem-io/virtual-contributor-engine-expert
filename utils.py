@@ -1,12 +1,9 @@
-from alkemio_virtual_contributor_engine.chromadb_client import chromadb_client
-from models import embed_func
-from logger import setup_logger
-
-from alkemio_virtual_contributor_engine.events.input import (
-    HistoryItem,
-)
-from alkemio_virtual_contributor_engine.utils import (
-    clear_tags
+from alkemio_virtual_contributor_engine import (
+    chromadb_client,
+    openai_embeddings,
+    setup_logger,
+    clear_tags,
+    HistoryItem
 )
 
 logger = setup_logger(__name__)
@@ -27,7 +24,6 @@ def history_as_dict(history: list[HistoryItem]):
         )
     )
 
-
 # def load_context(query, contextId):
 #     collection_name = f"{contextId}-context"
 #     docs = load_documents(query, collection_name)
@@ -45,9 +41,10 @@ def load_knowledge(query, knowledgeId):
 def load_documents(query, collection_name, num_docs=4):
     try:
         collection = chromadb_client.get_collection(
-            collection_name, embedding_function=embed_func
+            collection_name, embedding_function=None  # chroma_openai_embeddings
         )
-        return collection.query(query_texts=[query], n_results=num_docs)
+        embeddings = openai_embeddings.embed_documents([query])
+        return collection.query(query_embeddings=list(embeddings), n_results=num_docs)
     except Exception as inst:
         logger.error(
             f"Error querying collection {collection_name} for question `{query}`"

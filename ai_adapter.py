@@ -1,6 +1,4 @@
-from alkemio_virtual_contributor_engine.events.input import Input
-from alkemio_virtual_contributor_engine.events.response import Response
-from logger import setup_logger
+from alkemio_virtual_contributor_engine import Input, Response, setup_logger
 from utils import (
     history_as_conversation,
     history_as_dict,
