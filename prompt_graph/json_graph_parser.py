@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from typing import Any, Dict
 from json_schema_to_pydantic import create_model
 
+
 def _transform_schema(obj: Any) -> None:
     """In-place transform of the loaded JSON structure.
 
@@ -75,6 +76,8 @@ Steps performed:
 
 The main entry point is the function build_prompt_graph_model().
 """
+
+
 def parse_json_graph(data: Dict[str, Any]) -> BaseModel:
     _transform_schema(data)
     model_cls = create_model(data, root_schema=data)

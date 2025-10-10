@@ -19,6 +19,7 @@ input_exclude = {}
 if LOG_LEVEL != "DEBUG":
     input_exclude = {"prompt_graph"}
 
+
 async def on_request(input: Input) -> Response:
     logger.info(f"Expert engine invoked; Input is {input.model_dump(exclude=input_exclude)}")
     logger.info(

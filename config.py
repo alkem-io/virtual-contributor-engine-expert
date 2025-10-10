@@ -31,10 +31,10 @@ local_path = config["local_path"]
 vectordb_path = local_path + os.sep + "vectordb"
 
 chunk_size = 3000
-# token limit for for the completion of the chat model, this does not include the overall context length
+# token limit for the completion of the chat model,
+# this does not include the overall context length
 max_token_limit = 2000
 
-LOG_LEVEL = os.getenv(
-    "LOG_LEVEL"
-)  # Possible values: 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'
+# Possible values: 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'
+LOG_LEVEL = os.getenv("LOG_LEVEL")
 assert LOG_LEVEL in ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]

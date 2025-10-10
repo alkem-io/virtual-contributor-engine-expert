@@ -14,6 +14,7 @@ from alkemio_virtual_contributor_engine import mistral_medium as llm, setup_logg
 
 logger = setup_logger(__name__)
 
+
 def retrieve(state: State):
     logger.info('Retrieving information from the knowledge base.')
     last_message = state.rephrased_question or state.messages[-1].content
@@ -95,7 +96,10 @@ class PromptGraph(BaseModel):
         return graph
 
     def __repr__(self) -> str:
-        return f"Graph(nodes={len(self.nodes)}, edges={len(self.edges)}, {self.start_node} -> {self.end_node})"
+        return (
+            f"Graph(nodes={len(self.nodes)}, edges={len(self.edges)}, "
+            f"{self.start_node} -> {self.end_node})"
+        )
 
     def validate_graph(self) -> List[str]:
         """Validate the graph structure and return any issues found.

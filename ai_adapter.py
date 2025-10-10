@@ -8,6 +8,7 @@ from prompt_graph import PromptGraph
 
 logger = setup_logger(__name__)
 
+
 async def invoke(input: Input) -> Response:
     try:
         if not input.prompt_graph:
@@ -58,7 +59,8 @@ async def invoke(input: Input) -> Response:
 
     except Exception as inst:
         logger.exception(inst)
-        result = f"{input.display_name} - the Alkemio's VirtualContributor is currently unavailable."
+        result = f"{input.display_name} - the Alkemio's VirtualContributor \
+        is currently unavailable."
 
         return Response(
             **{
