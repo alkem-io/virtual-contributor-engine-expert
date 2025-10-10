@@ -1,6 +1,4 @@
-from alkemio_virtual_contributor_engine.events.input import Input
-from alkemio_virtual_contributor_engine.events.response import Response
-from logger import setup_logger
+from alkemio_virtual_contributor_engine import Input, Response, setup_logger
 from utils import (
     history_as_conversation,
     history_as_dict,
@@ -9,6 +7,7 @@ from prompt_graph import PromptGraph
 
 
 logger = setup_logger(__name__)
+
 
 async def invoke(input: Input) -> Response:
     try:
@@ -60,7 +59,8 @@ async def invoke(input: Input) -> Response:
 
     except Exception as inst:
         logger.exception(inst)
-        result = f"{input.display_name} - the Alkemio's VirtualContributor is currently unavailable."
+        result = f"{input.display_name} - the Alkemio's VirtualContributor \
+        is currently unavailable."
 
         return Response(
             **{

@@ -107,14 +107,20 @@ class Node(BaseModel):
             if hasattr(state, var):
                 values[var] = getattr(state, var)
             else:
-                raise KeyError(f"Required input variable '{var}' not found in state for node '{self.name}'")
+                raise KeyError(
+                    f"Required input variable '{var}' not found in state "
+                    f"for node '{self.name}'"
+                )
 
         # Format the prompt template
         try:
             formatted_prompt = self.prompt.format(**values)
             return formatted_prompt
         except KeyError as e:
-            raise KeyError(f"Prompt template for node '{self.name}' requires variable {e} which was not provided")
+            raise KeyError(
+                f"Prompt template for node '{self.name}' requires variable "
+                f"{e} which was not provided"
+            )
 
     def execute(
         self,

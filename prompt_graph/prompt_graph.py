@@ -9,11 +9,11 @@ from .state import State
 from langgraph.graph import StateGraph, START, END
 from langchain.prompts import PromptTemplate
 from langchain.output_parsers import PydanticOutputParser
-from models import llm
 from utils import load_knowledge
-from logger import setup_logger
+from alkemio_virtual_contributor_engine import mistral_medium as llm, setup_logger
 
 logger = setup_logger(__name__)
+
 
 def retrieve(state: State):
     logger.info('Retrieving information from the knowledge base.')
@@ -96,7 +96,10 @@ class PromptGraph(BaseModel):
         return graph
 
     def __repr__(self) -> str:
-        return f"Graph(nodes={len(self.nodes)}, edges={len(self.edges)}, {self.start_node} -> {self.end_node})"
+        return (
+            f"Graph(nodes={len(self.nodes)}, edges={len(self.edges)}, "
+            f"{self.start_node} -> {self.end_node})"
+        )
 
     def validate_graph(self) -> List[str]:
         """Validate the graph structure and return any issues found.
@@ -187,7 +190,7 @@ class PromptGraph(BaseModel):
                             f"{', '.join(missing_vars)}. Available state attributes: "
                             f"{', '.join(dir(state))}"
                         )
-                    
+
                     # Prepare input for chain from state (all variables validated)
                     input_dict = {var: getattr(state, var) for var in node.input_variables}
 
