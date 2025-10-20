@@ -9,7 +9,7 @@ from .state import State
 from langgraph.graph import StateGraph, START, END
 from langchain.prompts import PromptTemplate
 from langchain.output_parsers import PydanticOutputParser
-from utils import load_knowledge
+from utils import load_knowledge, combine_documents
 from alkemio_virtual_contributor_engine import mistral_medium as llm, setup_logger
 
 logger = setup_logger(__name__)
@@ -18,9 +18,13 @@ logger = setup_logger(__name__)
 def retrieve(state: State):
     logger.info('Retrieving information from the knowledge base.')
     last_message = state.rephrased_question or state.messages[-1].content
-    knowledge_docs = load_knowledge(last_message, state.bok_id)
-    return {"knowledge_docs": knowledge_docs}
+    logger.info(f'Retrieving for message: {last_message}')
 
+    knowledge_docs = load_knowledge(last_message, state.bok_id)
+    combined_knowledge_docs = combine_documents(knowledge_docs)
+
+    logger.info(f'Retrieved knowledge documents: {combined_knowledge_docs}')
+    return {"knowledge_docs": knowledge_docs, "combined_knowledge_docs": combined_knowledge_docs}
 
 class PromptGraph(BaseModel):
     """Represents a complete prompt graph with nodes, edges, and state.
@@ -175,9 +179,16 @@ class PromptGraph(BaseModel):
                     parser = PydanticOutputParser(pydantic_object=node.output_model)
                     format_instructions = parser.get_format_instructions()
 
-                    # Prepare prompt template
+                    # Ensure the prompt contains the required output format instructions.
+                    # If missing, append them to the end with two new lines before them.
+                    prompt_text = node.prompt
+                    required_instr = "Output format instructions: {format_instructions}"
+                    if required_instr not in prompt_text:
+                        prompt_text = prompt_text + "\n\n" + required_instr
+
+                    # Prepare prompt template using the (possibly modified) prompt text
                     prompt = PromptTemplate(
-                        template=node.prompt,
+                        template=prompt_text,
                         input_variables=node.input_variables,
                         partial_variables={"format_instructions": format_instructions}
                     )
@@ -194,8 +205,11 @@ class PromptGraph(BaseModel):
                     # Prepare input for chain from state (all variables validated)
                     input_dict = {var: getattr(state, var) for var in node.input_variables}
 
+                    logger.debug(f"Invoking node '{node.name}' with prompt: {prompt} and inputs: {input_dict}")
                     chain = prompt | llm | parser
                     result = chain.invoke(input_dict)
+                    logger.debug(f"Node '{node.name}' produced result: {result}")
+
                     return result.model_dump()
                 return node_fn
             compiled_graph.add_node(node_name, make_node_fn(node))
