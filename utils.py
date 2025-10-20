@@ -13,6 +13,7 @@ def log_docs(docs, purpose):
     if docs:
         ids = list(docs["ids"][0])
         logger.info(f"{purpose} documents with ids [{','.join(ids)}] selected")
+        logger.debug(f"{purpose} documents: {docs}")
 
 
 def history_as_conversation(history: list[HistoryItem]):
