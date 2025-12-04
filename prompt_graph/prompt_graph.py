@@ -7,8 +7,8 @@ from .node import Node
 from .edge import Edge
 from .state import State
 from langgraph.graph import StateGraph, START, END
-from langchain.prompts import PromptTemplate
-from langchain.output_parsers import PydanticOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import PydanticOutputParser
 from utils import load_knowledge, combine_documents
 from alkemio_virtual_contributor_engine import mistral_medium as llm, setup_logger
 
@@ -187,11 +187,8 @@ class PromptGraph(BaseModel):
                         prompt_text = prompt_text + "\n\n" + required_instr
 
                     # Prepare prompt template using the (possibly modified) prompt text
-                    prompt = PromptTemplate(
-                        template=prompt_text,
-                        input_variables=node.input_variables,
-                        partial_variables={"format_instructions": format_instructions}
-                    )
+                    prompt = ChatPromptTemplate.from_template(prompt_text)
+                    prompt = prompt.partial(format_instructions=format_instructions)
 
                     # Validate all required input variables exist on state
                     missing_vars = [var for var in node.input_variables if not hasattr(state, var)]
