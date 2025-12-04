@@ -10,7 +10,7 @@ logger = setup_logger(__name__)
 
 
 def log_docs(docs, purpose):
-    if docs:
+    if docs and "ids" in docs and docs["ids"] and docs["ids"][0]:
         ids = list(docs["ids"][0])
         logger.info(f"{purpose} documents with ids [{','.join(ids)}] selected")
         logger.debug(f"{purpose} documents: {docs}")
@@ -56,9 +56,11 @@ def load_documents(query, collection_name, num_docs=4):
             embedding_function=None  # chroma_openai_embeddings
         )
         embeddings = openai_embeddings.embed_documents([query])
-        return collection.query(
+        result = collection.query(
             query_embeddings=list(embeddings), n_results=num_docs
         )
+        logger.debug(f"Query result keys: {result.keys() if hasattr(result, 'keys') else type(result)}")
+        return result
     except Exception as inst:
         logger.error(
             f"Error querying collection {collection_name} for question `{query}`"
@@ -69,7 +71,18 @@ def load_documents(query, collection_name, num_docs=4):
 
 def combine_documents(docs, document_separator="\n\n"):
     chunks_array = []
-    for index, document in enumerate(docs["documents"][0]):
+    
+    # Handle empty or invalid docs
+    if not docs or "documents" not in docs:
+        logger.warning("No documents found or invalid docs structure")
+        return ""
+    
+    documents = docs.get("documents")
+    if not documents or not documents[0]:
+        logger.warning("Documents list is empty")
+        return ""
+    
+    for index, document in enumerate(documents[0]):
         chunks_array.append(f"[source:{index}] {document}")
 
     return document_separator.join(chunks_array)
