@@ -1,21 +1,47 @@
-# Use an official Python runtime as a parent image
+# =============================================================================
+# Stage 1: Builder - Install dependencies and export to requirements.txt
+# =============================================================================
 ARG PYTHON_VERSION=3.11
 FROM python:${PYTHON_VERSION}-slim-bullseye AS builder
 
-RUN apt-get update 
-RUN apt-get install git -y
+# Install git (required for git-based dependencies) and clean up in same layer
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends git && \
+    rm -rf /var/lib/apt/lists/*
 
-# Set the working directory in the container to /app
 WORKDIR /app
 
-# Install Poetry
-RUN pip install poetry
+# Install Poetry and export plugin
+RUN pip install --no-cache-dir poetry poetry-plugin-export
 
-# Copy the current directory contents into the container at /app
-COPY . /app
+# Copy only dependency files first for better layer caching
+COPY pyproject.toml poetry.lock* ./
 
-# Use Poetry to install dependencies
-RUN poetry config virtualenvs.create true && poetry install --no-interaction --no-ansi
+# Export dependencies to requirements.txt and install to a target directory
+# This avoids needing Poetry in the final image
+RUN poetry export -f requirements.txt --output requirements.txt --without-hashes && \
+    pip install --no-cache-dir --target=/app/dependencies -r requirements.txt
 
-# Run guidance_engine.py when the container launches
-CMD ["poetry", "run", "python", "main.py"]
+# Copy application source code
+COPY . .
+
+# =============================================================================
+# Stage 2: Runtime - Minimal distroless image
+# =============================================================================
+FROM gcr.io/distroless/python3-debian11:nonroot
+
+WORKDIR /app
+
+# Copy installed dependencies from builder
+COPY --from=builder /app/dependencies /app/dependencies
+
+# Copy application code
+COPY --from=builder /app/*.py /app/
+COPY --from=builder /app/prompt_graph /app/prompt_graph/
+
+# Set Python path to include dependencies
+ENV PYTHONPATH=/app/dependencies
+
+# Run as non-root user (distroless:nonroot already runs as uid 65532)
+# Distroless images use the binary directly, not a shell
+ENTRYPOINT ["python", "main.py"]
