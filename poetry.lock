@@ -199,7 +199,7 @@ typing-extensions = {version = ">=4.2", markers = "python_version < \"3.13\""}
 
 [[package]]
 name = "alkemio-virtual-contributor-engine"
-version = "0.4.0"
+version = "0.7.0"
 description = "Alkemio's generic Virtual Contributor engine"
 optional = false
 python-versions = "^3.11"
@@ -219,8 +219,8 @@ pydantic-settings = "^2.11.0"
 [package.source]
 type = "git"
 url = "https://git@github.com/alkem-io/virtual-contributor-engine.git"
-reference = "v0.4.0"
-resolved_reference = "ddd9378813a367b2c8b8c2bf37ad3a63f59aa8c9"
+reference = "v0.7.0"
+resolved_reference = "6b627b9f027c46f6fbdc2d1da4a083a13f059fd0"
 
 [[package]]
 name = "annotated-types"
@@ -3202,4 +3202,4 @@ cffi = ["cffi (>=1.17,<2.0)", "cffi (>=2.0.0b)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.11"
-content-hash = "f64b8cb613a0141a577809693407bd59ed09730734d98f26553f2b7741c047d4"
+content-hash = "854ba2024ccc83b762885dd42400115b5623433602f7345a3218fe840a43bc7b"

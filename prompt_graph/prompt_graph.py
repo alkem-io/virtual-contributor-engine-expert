@@ -1,4 +1,5 @@
 """Graph class for managing and executing prompt graphs."""
+import time
 from typing import Any, Dict, List, Optional, Type
 from typing import Callable
 from pydantic import BaseModel, Field, ConfigDict
@@ -203,8 +204,14 @@ class PromptGraph(BaseModel):
                     input_dict = {var: getattr(state, var) for var in node.input_variables}
 
                     logger.debug(f"Invoking node '{node.name}' with prompt: {prompt} and inputs: {input_dict}")
+                    logger.debug(f"[VERBOSE] Starting LLM chain for node '{node.name}'...")
+                    start_time = time.time()
+                    
                     chain = prompt | llm | parser
                     result = chain.invoke(input_dict)
+                    
+                    duration = time.time() - start_time
+                    logger.debug(f"[VERBOSE] LLM chain for node '{node.name}' completed in {duration:.2f} seconds")
                     logger.debug(f"Node '{node.name}' produced result: {result}")
 
                     return result.model_dump()
