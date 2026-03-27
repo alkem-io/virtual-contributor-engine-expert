@@ -1,0 +1,30 @@
+name: Lint & Test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  lint-and-test:
+    runs-on: [self-hosted, macOS, ARM64, apple-silicon, m4]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry
+        run: pip install poetry
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Run flake8 linting
+        run: poetry run flake8
+
+      - name: Run tests with coverage
+        run: poetry run pytest --cov --cov-report=term-missing

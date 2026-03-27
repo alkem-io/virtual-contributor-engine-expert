@@ -1,12 +1,25 @@
-from alkemio_virtual_contributor_engine import Input, Response, setup_logger
+import re
+import time
+from alkemio_virtual_contributor_engine import (
+    Input, Response, setup_logger, HistoryItem, MessageSenderRole,
+    mistral_small, combine_query_results, PromptGraph,
+)
 from utils import (
     history_as_conversation,
     history_as_dict,
+    load_knowledge,
 )
-from prompt_graph import PromptGraph
 
 
 logger = setup_logger(__name__)
+
+
+def retrieve(state):
+    """Retrieve knowledge documents from ChromaDB for the current query."""
+    last_message = state.rephrased_question or state.messages[-1].content
+    knowledge_docs = load_knowledge(last_message, state.bok_id)
+    combined_knowledge_docs = combine_query_results(knowledge_docs)
+    return {"knowledge_docs": knowledge_docs, "combined_knowledge_docs": combined_knowledge_docs}
 
 
 async def invoke(input: Input) -> Response:
@@ -16,14 +29,26 @@ async def invoke(input: Input) -> Response:
 
         prompt_graph = PromptGraph.from_dict(input.prompt_graph)
 
-        graph = prompt_graph.compile()
+        # Append current message to history for the graph
+        full_history = list(input.history) + [
+            HistoryItem(content=input.message, role=MessageSenderRole.HUMAN)
+        ]
+
+        logger.info(f"Invoking graph for bok_id={input.body_of_knowledge_id} "
+                    f"history_messages={len(full_history)}")
+        logger.debug(f"Full conversation history: {history_as_dict(full_history)}")
+
+        graph = prompt_graph.compile(llm=mistral_small, special_nodes={"retrieve": retrieve})
+        start_time = time.time()
         result = graph.invoke({
-            "messages": history_as_dict(input.history),
-            "conversation": history_as_conversation(input.history),
+            "messages": history_as_dict(full_history),
+            "conversation": history_as_conversation(full_history),
             "bok_id": input.body_of_knowledge_id,
             "description": input.description,
             "display_name": input.display_name,
         })
+        duration = time.time() - start_time
+        logger.info(f"Graph invocation completed in {duration:.2f}s")
 
         json_result = {
             "result": result.get("final_answer", ""),
@@ -46,7 +71,10 @@ async def invoke(input: Input) -> Response:
                             "score": source_scores[str_index],
                             "uri": doc["source"],
                             "title": "[{}] {}".format(
-                                str(doc["type"]).replace("_", " ").lower().capitalize(),
+                                re.sub(
+                                    r'(?<=[a-z])(?=[A-Z])|_', ' ',
+                                    str(doc["type"])
+                                ).capitalize(),
                                 doc["title"],
                             ),
                         }
@@ -54,6 +82,9 @@ async def invoke(input: Input) -> Response:
             json_result["sources"] = list(
                 {doc["source"]: doc for doc in sources}.values()
             )
+
+        logger.debug(f"Retrieved knowledge docs: {knowledge_docs}")
+        logger.debug(f"Full result: {json_result}")
 
         return Response(**json_result)
 
