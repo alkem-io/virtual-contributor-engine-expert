@@ -16,7 +16,7 @@ jobs:
         run: python3 --version
 
       - name: Install Poetry
-        run: pip3 install --user poetry
+        run: pip3 install poetry
 
       - name: Install dependencies
         run: poetry install
