@@ -12,13 +12,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
+      - name: Verify Python version
+        run: python3 --version
 
       - name: Install Poetry
-        run: pip install poetry
+        run: pip3 install --user poetry
 
       - name: Install dependencies
         run: poetry install
