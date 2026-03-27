@@ -22,13 +22,13 @@ ENV POETRY_NO_INTERACTION=1 \
     POETRY_VIRTUALENVS_CREATE=false
 
 # Copy only dependency files first (better layer caching)
-COPY virtual-contributor-engine-expert/pyproject.toml virtual-contributor-engine-expert/poetry.lock ./
+COPY pyproject.toml poetry.lock ./
 
 # Install runtime dependencies into /venv
 RUN poetry install --only main --no-root --no-ansi
 
 # Copy application code
-COPY virtual-contributor-engine-expert/ /app/
+COPY . /app
 
 # Stage 2: Runtime stage
 FROM python:3.12-slim-bookworm
