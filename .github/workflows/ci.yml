@@ -16,13 +16,13 @@ jobs:
         run: python3 --version
 
       - name: Install Poetry
-        run: pip3 install poetry
+        run: python3 -m pip install poetry
 
       - name: Install dependencies
-        run: poetry install
+        run: python3 -m poetry install
 
       - name: Run flake8 linting
-        run: poetry run flake8
+        run: python3 -m poetry run flake8
 
       - name: Run tests with coverage
-        run: poetry run pytest --cov --cov-report=term-missing
+        run: python3 -m poetry run pytest --cov --cov-report=term-missing
