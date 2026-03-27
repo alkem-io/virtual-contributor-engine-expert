@@ -43,7 +43,7 @@ def test_log_docs_with_debug_details(caplog):
         "ids": [["id-1"]],
         "documents": [["doc content"]],
     }
-    with caplog.at_level(logging.DEBUG):
+    with caplog.at_level(logging.DEBUG, logger="utils"):
         log_docs(docs, "Test")
 
     assert "Test documents:" in caplog.text
