@@ -1,22 +1,16 @@
 <!--
 Sync Impact Report
-- Version change: N/A → 1.0.0 (initial creation)
-- Principles added:
-  1. Knowledge-Grounded Responses
-  2. Async Message-Driven Architecture
-  3. Source Attribution & Scoring
-  4. Observability
-  5. Security & Prompt Integrity
-- Sections added:
-  - Technology Stack Constraints
-  - Development Workflow
-  - Governance
+- Version change: 1.0.0 → 1.1.0
+- Modified principles: none
+- Added principles:
+  6. Test Coverage (new)
+- Removed sections: none
 - Templates requiring updates:
   - .specify/templates/plan-template.md ✅ no changes needed (generic)
   - .specify/templates/spec-template.md ✅ no changes needed (generic)
-  - .specify/templates/tasks-template.md ✅ no changes needed (generic)
+  - .specify/templates/tasks-template.md ✅ no changes needed (tests already supported)
   - .specify/templates/commands/ ✅ no command files present
-- Follow-up TODOs: RATIFICATION_DATE set to today (first adoption)
+- Follow-up TODOs: none
 -->
 
 # Virtual Contributor Engine Expert Constitution
@@ -82,6 +76,20 @@ LLM. Without prompt integrity enforcement, adversarial inputs could bypass
 knowledge grounding, leak system prompts, or cause the persona to behave
 outside its intended role.
 
+### VI. Test Coverage
+
+All production code MUST maintain a minimum of 90% test coverage as measured by
+line coverage (`pytest --cov`). New features and bug fixes MUST include tests
+that cover the changed code paths. Coverage MUST NOT decrease on any pull
+request — if a PR reduces coverage below the 90% threshold, it MUST be blocked
+until tests are added. Critical paths (prompt graph execution, response
+building, message handling) SHOULD target 95%+ coverage.
+
+**Rationale**: The engine relies on non-deterministic LLM interactions and
+async message processing, making untested code paths high-risk for silent
+regressions. A strict coverage floor ensures that refactors, dependency
+upgrades, and prompt changes are validated against known-good behavior.
+
 ## Technology Stack Constraints
 
 - **Language**: Python 3.12+
@@ -132,4 +140,4 @@ principles.
 the core principles. The Constitution Check section in implementation plans
 MUST reference these principles by number.
 
-**Version**: 1.0.0 | **Ratified**: 2026-03-26 | **Last Amended**: 2026-03-26
+**Version**: 1.1.0 | **Ratified**: 2026-03-26 | **Last Amended**: 2026-03-27
