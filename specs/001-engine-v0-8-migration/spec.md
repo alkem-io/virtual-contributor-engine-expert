@@ -113,7 +113,7 @@ An operator monitors the engine in production. Logs are structured with appropri
 - **FR-012**: Project MUST include a test suite using pytest that achieves >90% line coverage.
 - **FR-013**: Tests MUST mock all external dependencies (LLM API, embeddings endpoint, vector database, message queue) so they run without credentials or infrastructure.
 - **FR-014**: Tests MUST cover the invoke happy path, missing prompt_graph error path, LLM failure error path, retrieve node behavior, and utility functions.
-- **FR-015**: Project MUST include a CI workflow (GitHub Actions) that runs on push and pull request events, using the self-hosted runner: `[self-hosted, macOS, ARM64, apple-silicon, m4]`.
+- **FR-015**: Project MUST include a CI workflow (GitHub Actions) that runs on push and pull request events, using `ubuntu-latest` runner with `actions/setup-python` for Python 3.12.
 - **FR-016**: CI pipeline MUST run flake8 linting and fail on any violations.
 - **FR-017**: CI pipeline MUST run pytest with coverage reporting and fail if any test fails.
 - **FR-018**: Project MUST add pytest, pytest-cov, and pytest-asyncio as dev dependencies.
