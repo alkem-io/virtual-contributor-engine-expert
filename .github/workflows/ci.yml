@@ -9,6 +9,15 @@ on:
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest
+    env:
+      LOG_LEVEL: INFO
+      RABBITMQ_HOST: localhost
+      RABBITMQ_USER: guest
+      RABBITMQ_PASSWORD: guest
+      RABBITMQ_QUEUE: test
+      RABBITMQ_RESULT_QUEUE: test-result
+      RABBITMQ_EVENT_BUS_EXCHANGE: test-exchange
+      RABBITMQ_RESULT_ROUTING_KEY: test-key
 
     steps:
       - uses: actions/checkout@v4
