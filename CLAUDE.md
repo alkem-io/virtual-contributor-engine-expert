@@ -38,7 +38,7 @@ AI-powered expert engine for the Alkemio platform. Receives questions via Rabbit
 poetry install
 
 # Run the engine
-python main.py
+poetry run python main.py
 
 # Run tests
 poetry run pytest

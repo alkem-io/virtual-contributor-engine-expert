@@ -49,7 +49,7 @@
 
 **Alternatives considered**:
 - Separate lint and test jobs → rejected: overhead of two jobs on self-hosted runner outweighs parallelism benefit for this small project.
-- Use GitHub-hosted ubuntu runner → rejected: project requires self-hosted macOS ARM64.
+- Use GitHub-hosted Ubuntu runner → rejected: project requires self-hosted macOS ARM64.
 
 ## R6: Logging Structure
 

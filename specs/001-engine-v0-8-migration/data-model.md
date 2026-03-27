@@ -66,7 +66,7 @@ Engine-specific function injected into the graph at compile time.
 
 ## Data Flow
 
-```
+```text
 RabbitMQ message
   → Input (Pydantic model)
     → full_history = history + current message

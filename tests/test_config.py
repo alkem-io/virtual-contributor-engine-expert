@@ -30,10 +30,8 @@ def test_log_level_valid_values():
 def test_log_level_invalid_value():
     """Test that config rejects invalid LOG_LEVEL values."""
     with pytest.MonkeyPatch.context() as mp:
-        mp.setenv("LOG_LEVEL", "INVALID")
-        import config
         with pytest.raises(AssertionError):
-            importlib.reload(config)
+            _reload_config_with_env(mp, {"LOG_LEVEL": "INVALID"})
 
 
 def test_history_length_default():

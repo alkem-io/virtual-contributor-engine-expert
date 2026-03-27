@@ -16,7 +16,10 @@ logger = setup_logger(__name__)
 
 def retrieve(state):
     """Retrieve knowledge documents from ChromaDB for the current query."""
-    last_message = state.rephrased_question or state.messages[-1].content
+    last_msg = state.messages[-1]
+    last_message = state.rephrased_question or (
+        last_msg["content"] if isinstance(last_msg, dict) else last_msg.content
+    )
     knowledge_docs = load_knowledge(last_message, state.bok_id)
     combined_knowledge_docs = combine_query_results(knowledge_docs)
     return {"knowledge_docs": knowledge_docs, "combined_knowledge_docs": combined_knowledge_docs}
