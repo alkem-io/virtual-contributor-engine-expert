@@ -98,5 +98,12 @@ def mock_graph_result_no_sources():
 def mock_compiled_graph(mock_graph_result):
     """A mock compiled graph that returns realistic results."""
     graph = MagicMock()
-    graph.invoke.return_value = mock_graph_result
+    graph.stream.return_value = iter([
+        {"retrieve": {
+            "knowledge_docs": mock_graph_result.get("knowledge_docs", {}),
+            "combined_knowledge_docs": "",
+        }},
+        {"answer": {k: v for k, v in mock_graph_result.items()
+                    if k not in ("knowledge_docs", "combined_knowledge_docs")}},
+    ])
     return graph

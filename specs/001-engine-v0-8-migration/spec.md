@@ -34,7 +34,7 @@ A platform operator deploys the updated engine. The prompt graph — previously 
 **Acceptance Scenarios**:
 
 1. **Given** the local `prompt_graph/` package is deleted, **When** the engine imports `PromptGraph` from the base library, **Then** the import succeeds and the graph can be compiled with an LLM and special nodes.
-2. **Given** a compiled prompt graph with a `retrieve` special node, **When** the graph is invoked with a user message and BoK ID, **Then** the `retrieve` node fetches documents from the vector database and the graph produces a `final_answer`, `knowledge_docs`, and `source_scores`.
+2. **Given** a compiled prompt graph with a `retrieve` special node, **When** the graph is streamed with a user message and BoK ID, **Then** each graph step completes and logs individually, the `retrieve` node fetches documents from the vector database, and the accumulated result contains `final_answer`, `knowledge_docs`, and `source_scores`.
 
 ---
 
@@ -81,8 +81,8 @@ An operator monitors the engine in production. Logs are structured with appropri
 
 **Acceptance Scenarios**:
 
-1. **Given** log level set to INFO, **When** a request is processed, **Then** logs show: persona ID, VC name, user query, history message count, invocation duration in seconds, response summary (answer length, source count, language), without full input or response payloads.
-2. **Given** log level set to DEBUG, **When** a request is processed, **Then** logs additionally show: full input message, full conversation history, full response content, and retrieved document details.
+1. **Given** log level set to INFO, **When** a request is processed, **Then** logs show: persona ID, VC name, user query, history message count, each graph step completion, invocation duration in seconds, response summary (answer length, source count, language), without full input or response payloads.
+2. **Given** log level set to DEBUG, **When** a request is processed, **Then** logs additionally show: full input message, full conversation history, per-step output details, full response content, and retrieved document details.
 3. **Given** the updated codebase, **When** inspecting `main.py`, **Then** there are no `print()` or `pprint()` calls — all output goes through the structured logger.
 
 ---
@@ -105,22 +105,24 @@ An operator monitors the engine in production. Logs are structured with appropri
 - **FR-004**: System MUST delete the local `prompt_graph/` package entirely (all 7 files).
 - **FR-005**: System MUST import shared utility functions (`history_as_conversation`, `history_as_dict`, `query_documents`, `combine_query_results`) from the base engine library.
 - **FR-006**: System MUST remove all local implementations of functions now provided by the base library.
-- **FR-007**: System MUST append the current user message to the conversation history before invoking the prompt graph.
-- **FR-008**: System MUST log the duration of each prompt graph invocation (LLM call) in seconds, so operators can monitor response latency.
-- **FR-009**: System MUST remove obsolete environment variables (`AZURE_*`, `OPENAI_*`, `AI_LOCAL_PATH`, `AI_MODEL_TEMPERATURE`, `LLM_DEPLOYMENT_NAME`, `EMBEDDINGS_DEPLOYMENT_NAME`) from the default configuration.
-- **FR-010**: System MUST require Python 3.12 or higher.
-- **FR-011**: System MUST remove direct dependencies on `langchain-community`, `json-schema-to-pydantic`, and `langgraph` (these become transitive via the base library).
-- **FR-012**: Project MUST include a test suite using pytest that achieves >90% line coverage.
-- **FR-013**: Tests MUST mock all external dependencies (LLM API, embeddings endpoint, vector database, message queue) so they run without credentials or infrastructure.
-- **FR-014**: Tests MUST cover the invoke happy path, missing prompt_graph error path, LLM failure error path, retrieve node behavior, and utility functions.
-- **FR-015**: Project MUST include a CI workflow (GitHub Actions) that runs on push and pull request events, using `ubuntu-latest` runner with `actions/setup-python` for Python 3.12.
-- **FR-016**: CI pipeline MUST run flake8 linting and fail on any violations.
-- **FR-017**: CI pipeline MUST run pytest with coverage reporting and fail if any test fails.
-- **FR-018**: Project MUST add pytest, pytest-cov, and pytest-asyncio as dev dependencies.
-- **FR-019**: System MUST log at INFO level: persona ID and VC name on invocation, user query, conversation history message count, graph invocation duration, and response summary (answer length, source count, detected language).
-- **FR-020**: System MUST log at DEBUG level: full input message payload, full conversation history content, full response content, and retrieved document details.
-- **FR-021**: System MUST NOT use `print()` or `pprint()` for output — all logging MUST go through the structured logger.
-- **FR-022**: System MUST NOT log the full input message at INFO level — only query and metadata.
+- **FR-007**: System MUST pass the conversation history directly to the prompt graph without modification (the server already includes the current message in the history).
+- **FR-008**: System MUST use `graph.stream()` for prompt graph execution, accumulating results step-by-step, and log the completion of each graph step at INFO level and step output at DEBUG level.
+- **FR-009**: System MUST log the total duration of the graph invocation in seconds, so operators can monitor response latency.
+- **FR-010**: System MUST extract `current_question` from the first message in history and pass it as a separate field in the graph input state.
+- **FR-011**: System MUST remove obsolete environment variables (`AZURE_*`, `OPENAI_*`, `AI_LOCAL_PATH`, `AI_MODEL_TEMPERATURE`, `LLM_DEPLOYMENT_NAME`, `EMBEDDINGS_DEPLOYMENT_NAME`) from the default configuration.
+- **FR-012**: System MUST require Python 3.12 or higher.
+- **FR-013**: System MUST remove direct dependencies on `langchain-community`, `json-schema-to-pydantic`, and `langgraph` (these become transitive via the base library).
+- **FR-014**: Project MUST include a test suite using pytest that achieves >90% line coverage.
+- **FR-015**: Tests MUST mock all external dependencies (LLM API, embeddings endpoint, vector database, message queue) so they run without credentials or infrastructure.
+- **FR-016**: Tests MUST cover the invoke happy path, missing prompt_graph error path, LLM failure error path, retrieve node behavior, and utility functions.
+- **FR-017**: Project MUST include a CI workflow (GitHub Actions) that runs on push and pull request events, using `ubuntu-latest` runner with `actions/setup-python` for Python 3.12.
+- **FR-018**: CI pipeline MUST run flake8 linting and fail on any violations.
+- **FR-019**: CI pipeline MUST run pytest with coverage reporting and fail if any test fails.
+- **FR-020**: Project MUST add pytest, pytest-cov, and pytest-asyncio as dev dependencies.
+- **FR-021**: System MUST log at INFO level: persona ID and VC name on invocation, user query, conversation history message count, graph invocation duration, per-step completion, and response summary (answer length, source count, detected language).
+- **FR-022**: System MUST log at DEBUG level: full input message payload, full conversation history content, per-step output, full response content, and retrieved document details.
+- **FR-023**: System MUST NOT use `print()` or `pprint()` for output — all logging MUST go through the structured logger.
+- **FR-024**: System MUST NOT log the full input message at INFO level — only query and metadata.
 
 ### Key Entities
 
@@ -146,3 +148,4 @@ An operator monitors the engine in production. Logs are structured with appropri
 - Existing vector database collections and document formats are compatible with the new `query_documents()` function from the base library.
 - The Mistral API and Scaleway embeddings endpoint provide equivalent or better quality compared to the previous Azure-hosted services.
 - The prompt graph JSON definition format consumed by the base library is backward-compatible with existing stored prompt graph configurations.
+- The server (upstream platform) includes the current user message in the history before dispatching to the engine — the engine does not need to append it.

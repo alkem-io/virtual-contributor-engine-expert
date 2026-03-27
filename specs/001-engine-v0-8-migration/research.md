@@ -38,18 +38,18 @@
 **Rationale**: pytest is the de facto Python testing standard. pytest-asyncio handles the async `invoke()` function. Mocking at the import boundary (base library functions) keeps tests fast and infrastructure-free.
 
 **Alternatives considered**:
-- Integration tests with real ChromaDB → rejected: adds infra dependency, not suitable for CI on self-hosted runner without Docker.
+- Integration tests with real ChromaDB → rejected: adds infra dependency, not suitable for CI without Docker services.
 - Use `responses` or `httpx_mock` → rejected: we mock at the Python function level, not HTTP level, since the base library abstracts the HTTP calls.
 
 ## R5: CI Pipeline Design
 
-**Decision**: Add `.github/workflows/ci.yml` with a single job running on `[self-hosted, macOS, ARM64, apple-silicon, m4]`. Steps: checkout, install Python 3.12, install Poetry, install dependencies, run flake8, run pytest with coverage. Triggered on push and pull_request to all branches.
+**Decision**: Add `.github/workflows/ci.yml` with a single job running on `ubuntu-latest` using `actions/setup-python@v5` for Python 3.12. Steps: checkout, setup Python, install Poetry, install dependencies, run flake8, run pytest with coverage. Triggered on push and pull_request to all branches.
 
-**Rationale**: Self-hosted runner is required per project constraints (M4 Apple Silicon). Single job is sufficient — lint and test are fast enough to run sequentially. Existing deploy workflows remain unchanged (they trigger only on `develop` push).
+**Rationale**: GitHub-hosted `ubuntu-latest` provides a reliable, zero-maintenance CI environment. Single job is sufficient — lint and test are fast enough to run sequentially. Existing deploy workflows remain unchanged (they trigger only on `develop` push).
 
 **Alternatives considered**:
-- Separate lint and test jobs → rejected: overhead of two jobs on self-hosted runner outweighs parallelism benefit for this small project.
-- Use GitHub-hosted Ubuntu runner → rejected: project requires self-hosted macOS ARM64.
+- Separate lint and test jobs → rejected: overhead of two jobs outweighs parallelism benefit for this small project.
+- Use self-hosted macOS ARM64 runner → rejected: `actions/setup-python` fails with permission errors on the self-hosted runner (`/Users/runner` path mismatch), and `pip install` puts binaries outside `$PATH`. Filed alkem-io/virtual-contributor-engine#33 to investigate runner fixes across all VC projects.
 
 ## R6: Logging Structure
 

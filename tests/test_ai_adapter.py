@@ -37,7 +37,7 @@ async def test_invoke_graph_failure(mock_input):
     """Test that graph invocation failure returns error response."""
     mock_prompt_graph = MagicMock()
     mock_graph = MagicMock()
-    mock_graph.invoke.side_effect = RuntimeError("LLM API error")
+    mock_graph.stream.side_effect = RuntimeError("LLM API error")
     mock_prompt_graph.compile.return_value = mock_graph
 
     with patch.object(ai_adapter, "PromptGraph") as MockPG:
@@ -53,7 +53,7 @@ async def test_invoke_no_sources(mock_input, mock_graph_result_no_sources):
     """Test invocation with no source scores."""
     mock_prompt_graph = MagicMock()
     mock_graph = MagicMock()
-    mock_graph.invoke.return_value = mock_graph_result_no_sources
+    mock_graph.stream.return_value = iter([{"answer": mock_graph_result_no_sources}])
     mock_prompt_graph.compile.return_value = mock_graph
 
     with patch.object(ai_adapter, "PromptGraph") as MockPG:
@@ -71,7 +71,14 @@ async def test_invoke_filters_zero_score_sources(mock_input, mock_graph_result):
     mock_graph_result["source_scores"] = {"0": 8, "1": 0}
     mock_prompt_graph = MagicMock()
     mock_graph = MagicMock()
-    mock_graph.invoke.return_value = mock_graph_result
+    mock_graph.stream.return_value = iter([
+        {"retrieve": {
+            "knowledge_docs": mock_graph_result.get("knowledge_docs", {}),
+            "combined_knowledge_docs": "",
+        }},
+        {"answer": {k: v for k, v in mock_graph_result.items()
+                    if k not in ("knowledge_docs", "combined_knowledge_docs")}},
+    ])
     mock_prompt_graph.compile.return_value = mock_graph
 
     with patch.object(ai_adapter, "PromptGraph") as MockPG:
@@ -104,18 +111,39 @@ def test_retrieve_function():
     assert result["combined_knowledge_docs"] == "combined"
 
 
-def test_retrieve_falls_back_to_last_message():
-    """Test retrieve uses last message when no rephrased_question."""
+def test_retrieve_falls_back_to_first_message():
+    """Test retrieve uses first message (newest) when no rephrased_question."""
     mock_state = MagicMock()
     mock_state.rephrased_question = None
-    mock_state.messages = [MagicMock(content="fallback question")]
+    mock_state.messages = [
+        MagicMock(content="current question"),
+        MagicMock(content="older message"),
+    ]
     mock_state.bok_id = "bok-abc"
 
     with patch("ai_adapter.load_knowledge", return_value={}) as mock_load, \
          patch("ai_adapter.combine_query_results", return_value=""):
         ai_adapter.retrieve(mock_state)
 
-    mock_load.assert_called_once_with("fallback question", "bok-abc")
+    mock_load.assert_called_once_with("current question", "bok-abc")
+
+
+@pytest.mark.asyncio
+async def test_invoke_passes_history_directly(mock_input, mock_compiled_graph):
+    """Test that history is passed directly to the graph without modification."""
+    mock_prompt_graph = MagicMock()
+    mock_prompt_graph.compile.return_value = mock_compiled_graph
+
+    with patch.object(ai_adapter, "PromptGraph") as MockPG:
+        MockPG.from_dict.return_value = mock_prompt_graph
+        await ai_adapter.invoke(mock_input)
+
+    call_args = mock_compiled_graph.stream.call_args[0][0]
+    messages = call_args["messages"]
+    # History should be passed as-is (server already includes current message)
+    assert len(messages) == 2
+    assert messages[0]["content"] == "Hello"
+    assert messages[1]["content"] == "Hi there!"
 
 
 def test_source_title_formatting(mock_input, mock_graph_result):
@@ -124,7 +152,14 @@ def test_source_title_formatting(mock_input, mock_graph_result):
     mock_graph_result["knowledge_docs"]["metadatas"][0][0]["type"] = "webPage"
     mock_prompt_graph = MagicMock()
     mock_graph = MagicMock()
-    mock_graph.invoke.return_value = mock_graph_result
+    mock_graph.stream.return_value = iter([
+        {"retrieve": {
+            "knowledge_docs": mock_graph_result.get("knowledge_docs", {}),
+            "combined_knowledge_docs": "",
+        }},
+        {"answer": {k: v for k, v in mock_graph_result.items()
+                    if k not in ("knowledge_docs", "combined_knowledge_docs")}},
+    ])
     mock_prompt_graph.compile.return_value = mock_graph
 
     import asyncio
