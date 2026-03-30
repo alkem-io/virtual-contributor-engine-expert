@@ -15,18 +15,28 @@ logger = setup_logger(__name__)
 
 logger.info(f"log level {os.path.basename(__file__)}: {LOG_LEVEL}")
 
-input_exclude = {}
-if LOG_LEVEL != "DEBUG":
-    input_exclude = {"prompt_graph"}
+input_exclude = {"prompt_graph"}
 
 
 async def on_request(input: Input) -> Response:
-    logger.info(f"Expert engine invoked; Input is {input.model_dump(exclude=input_exclude)}")
     logger.info(
-        f"AiPersonaID={input.persona_id} with VC name `{input.display_name}` invoked."
+        f"AiPersonaID={input.persona_id} "
+        f"VC=`{input.display_name}` "
+        f"query=`{input.message}` "
+        f"history_count={len(input.history)}"
     )
+    logger.debug(f"Full input: {input.model_dump(exclude=input_exclude)}")
+
     result = await ai_adapter.invoke(input)
-    logger.info(f"LLM result: {result.model_dump()}")
+
+    source_count = len(result.sources) if result.sources else 0
+    logger.info(
+        f"Response: answer_length={len(result.result)} "
+        f"sources={source_count} "
+        f"language={result.human_language}"
+    )
+    logger.debug(f"Full response: {result.model_dump()}")
+
     return result
 
 

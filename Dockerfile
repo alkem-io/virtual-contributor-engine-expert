@@ -1,19 +1,15 @@
-# Stage 1: Build stage - Debian Python for distroless compatibility
-FROM debian:bookworm-slim AS builder
+# Stage 1: Build stage - Python 3.12 (required by pyproject.toml)
+FROM python:3.12-slim-bookworm AS builder
 
-# Install Python, pip, venv, and git (required for git-based Poetry deps)
+# Install git (required for git-based Poetry deps)
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        python3 \
-        python3-pip \
-        python3-venv \
         git \
         ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Create a venv whose interpreter path matches distroless (/usr/bin/python3.11)
 RUN python3 -m venv /venv
 ENV VIRTUAL_ENV=/venv \
     PATH="/venv/bin:$PATH"
@@ -34,14 +30,14 @@ RUN poetry install --only main --no-root --no-ansi
 # Copy application code
 COPY . /app
 
-# Stage 2: Runtime stage - Google distroless Python image
-FROM gcr.io/distroless/python3-debian12:nonroot
+# Stage 2: Runtime stage
+FROM python:3.12-slim-bookworm
 
 WORKDIR /app
 
 # Copy the prebuilt venv + application
 COPY --from=builder /venv /venv
-COPY --from=builder --chown=nonroot:nonroot /app /app
+COPY --from=builder /app /app
 
 # Environment variables for Python optimization
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -49,6 +45,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     VIRTUAL_ENV=/venv \
     PATH="/venv/bin:$PATH"
 
-USER nonroot
+RUN useradd --create-home --uid 1000 appuser
+USER appuser
 
 ENTRYPOINT ["python", "main.py"]

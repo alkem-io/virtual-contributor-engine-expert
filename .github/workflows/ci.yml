@@ -1,0 +1,39 @@
+name: Lint & Test
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    env:
+      LOG_LEVEL: INFO
+      RABBITMQ_HOST: localhost
+      RABBITMQ_USER: guest
+      RABBITMQ_PASSWORD: guest
+      RABBITMQ_QUEUE: test
+      RABBITMQ_RESULT_QUEUE: test-result
+      RABBITMQ_EVENT_BUS_EXCHANGE: test-exchange
+      RABBITMQ_RESULT_ROUTING_KEY: test-key
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry
+        run: pip install poetry
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Run flake8 linting
+        run: poetry run flake8
+
+      - name: Run tests with coverage
+        run: poetry run pytest --cov --cov-report=term-missing
